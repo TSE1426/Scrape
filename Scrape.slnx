@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Scrape.Backend/Scrape.Backend.csproj" />
+  <Project Path="Scrape/Scrape.csproj" />
+</Solution>
