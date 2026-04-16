@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="Scrape.Backend/Scrape.Backend.csproj" />
+  <Project Path="Scrape.Sandbox/Scrape.Sandbox.csproj" Id="8adfd28e-2d3f-4c62-9ce7-e1e195bc2c8c" />
   <Project Path="Scrape/Scrape.csproj" />
 </Solution>
