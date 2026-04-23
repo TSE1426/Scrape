@@ -8,46 +8,29 @@ internal class Program
     {
         var graph = new NodeGraph();
 
-        // The code below produces a graph roughly equivalent to the following
-        // ┌───────────┐     ┌────────────┐      ┌─────────────┐      ┌────────────┐ 
-        // │   Start   │     │   SetVar   │      │   Branch    │      │   Print    │ 
-        // │           │     │            │      │             │      │            │ 
-        // │      Start├───►│Flow    Flow├────►│Flow   IfTrue│────►│Flow        │ 
-        // └───────────┘     │     ┌───┐  │      │             │      │  ┌────────┐│ 
-        //                   │Name │var│  │  ┌─►│Cond  IfFalse│──┐   │  │Was true││ 
-        //                   │     └───┘  │  │   └─────────────┘  │   │  └────────┘│ 
-        // ┌───────────┐  ┌►│Val         │  │                    │   └────────────┘ 
-        // │   Const   │  │  └────────────┘  │                    │                  
-        // │     ┌────┐│  │  ┌───────────┐   │                    │   ┌─────────────┐
-        // │     │true│├──┘  │   GetVar  │   │                    │   │   Print     │
-        // │     └────┘│     │     ┌───┐ │   │                    │   │             │
-        // └───────────┘     │Name │var│ │   │                    └─►│Flow         │
-        //                   │     └───┘ │   │                        │  ┌─────────┐│
-        //                   │        Val├───┘                        │  │Was false││
-        //                   └───────────┘                            │  └─────────┘│
-        //                                                            └─────────────┘
-
-        // Change to false and the output should change
-        const bool BRANCH = true;
-
-        var constNode = graph.AddNode(new ConstantNode<bool>(new(BRANCH)));
-        var setVarNode = graph.AddNode(new SetVariableNode("var"));
-
-        var getVarNode = graph.AddNode(new GetVariableNode("var"));
         var branchNode = graph.AddNode(new BranchNode());
         var trueBranch = graph.AddNode(new DebugStringNode("var was true"));
         var falseBranch = graph.AddNode(new DebugStringNode("var was false"));
 
-        graph.StartNode.StartPin.Connect(setVarNode.InFlowPin);
-        setVarNode.OutFlowPin.Connect(branchNode.FlowPin);
-        setVarNode.ValuePin.Connect(constNode.ValuePin);
+        var lhsNode = graph.AddNode(new ConstantNode<double>(new(34)));
+        var rhsNode = graph.AddNode(new ConstantNode<double>(new(35)));
+        var compNode = graph.AddNode(new CompareNode());
 
-        branchNode.CondPin.Connect(getVarNode.ValuePin);
-        branchNode.IfTruePin.Connect(trueBranch.InFlowPin);
+        compNode.LhsPin.Connect(lhsNode.ValuePin);
+        compNode.RhsPin.Connect(rhsNode.ValuePin);
+        compNode.Operation = CompareNode.OperationType.LessThan;
+
         branchNode.IfFalsePin.Connect(falseBranch.InFlowPin);
+        branchNode.IfTruePin.Connect(trueBranch.InFlowPin);
+        branchNode.CondPin.Connect(compNode.ResultPin);
+
+        graph.StartNode.StartPin.Connect(branchNode.FlowPin);
 
         var ctx = new EvaluationContext();
         graph.Evaluate(ctx);
+
+        foreach (var (_, message) in ctx.Errors)
+            Console.Error.WriteLine(message);
     }
 }
 
