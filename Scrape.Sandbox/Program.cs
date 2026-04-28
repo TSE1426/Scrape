@@ -8,29 +8,66 @@ internal class Program
     {
         var graph = new NodeGraph();
 
-        var branchNode = graph.AddNode(new BranchNode());
-        var trueBranch = graph.AddNode(new DebugStringNode("var was true"));
-        var falseBranch = graph.AddNode(new DebugStringNode("var was false"));
+        var loopNode = graph.AddNode(new LoopNode());
+        var printCurrentNode = graph.AddNode(new DebugValueNode("Current"));
+        var printCompletedNode = graph.AddNode(new DebugStringNode("Loop finished"));
 
-        var lhsNode = graph.AddNode(new ConstantNode<double>(new(34)));
-        var rhsNode = graph.AddNode(new ConstantNode<double>(new(35)));
-        var compNode = graph.AddNode(new CompareNode());
+        var startValueNode = graph.AddNode(new ConstantNode<double>(new(1)));
+        var endValueNode = graph.AddNode(new ConstantNode<double>(new(10)));
+        var stepValueNode = graph.AddNode(new ConstantNode<double>(new(2)));
 
-        compNode.LhsPin.Connect(lhsNode.ValuePin);
-        compNode.RhsPin.Connect(rhsNode.ValuePin);
-        compNode.Operation = CompareNode.OperationType.LessThan;
+        graph.StartNode.StartPin.Connect(loopNode.InFlowPin);
 
-        branchNode.IfFalsePin.Connect(falseBranch.InFlowPin);
-        branchNode.IfTruePin.Connect(trueBranch.InFlowPin);
-        branchNode.CondPin.Connect(compNode.ResultPin);
-
-        graph.StartNode.StartPin.Connect(branchNode.FlowPin);
+        startValueNode.ValuePin.Connect(loopNode.StartPin);
+        endValueNode.ValuePin.Connect(loopNode.EndPin);
+        stepValueNode.ValuePin.Connect(loopNode.StepPin);
+        loopNode.BodyPin.Connect(printCurrentNode.InFlowPin);
+        loopNode.CurrentPin.Connect(printCurrentNode.ValuePin);
+        loopNode.CompletedPin.Connect(printCompletedNode.InFlowPin);
 
         var ctx = new EvaluationContext();
         graph.Evaluate(ctx);
 
         foreach (var (_, message) in ctx.Errors)
             Console.Error.WriteLine(message);
+    }
+}
+
+
+internal sealed class DebugValueNode : Node
+{
+    public readonly InFlowPin InFlowPin;
+    public readonly InPin ValuePin;
+    public readonly OutFlowPin OutFlowPin;
+    private readonly string _label;
+
+    public DebugValueNode(string label) : base("Debug Value")
+    {
+        InFlowPin = AddInPin<InFlowPin>("In");
+        ValuePin = AddInPin<InPin>("Value");
+        OutFlowPin = AddOutPin<OutFlowPin>("Out");
+        _label = label;
+    }
+
+    public override void Evaluate(EvaluationContext ctx)
+    {
+        base.Evaluate(ctx);
+
+        var value = ctx.Pop();
+        Console.Error.WriteLine($"{_label} = {FormatValue(value)}");
+
+        PinHelper.ContinueFlow(ctx, OutFlowPin);
+    }
+
+    private static string FormatValue(Value value)
+    {
+        return value.Type switch
+        {
+            Value.ValueType.Number => value.AsNumber().ToString(),
+            Value.ValueType.Boolean => value.AsBoolean().ToString(),
+            Value.ValueType.String => value.AsString(),
+            _ => "<unknown>",
+        };
     }
 }
 
