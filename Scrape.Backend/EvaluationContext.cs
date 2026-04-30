@@ -19,7 +19,10 @@ public sealed class EvaluationContext
     public bool PopBoolean() => Stack.Pop().AsBoolean();
     public string PopString() => Stack.Pop().AsString();
 
-    public void Set(string identifier, Value value) => Variables.Add(identifier, value);
+    // Needed to change how to add to dictionary, variables.Add crashes if you alreay have a value set
+    // I want to increment i in a loop, which I think is important so this needs to be changed
+    // This way can create and override the values of a variable by using identifier as a key
+    public void Set(string identifier, Value value) => Variables[identifier] = value;
     public Value Get(string identifier) => Variables[identifier];
 
     public void ReportError(Node node, string msg) => Errors.Add((node, msg));
