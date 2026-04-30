@@ -6,6 +6,7 @@ public sealed class BranchNode : Node
 {
     public InFlowPin FlowPin;
     public InPin<bool> CondPin;
+    public OutFlowPin CompletedPin;
     public OutFlowPin IfTruePin;
     public OutFlowPin IfFalsePin;
 
@@ -13,6 +14,7 @@ public sealed class BranchNode : Node
     {
         FlowPin = AddInPin<InFlowPin>("Flow");
         CondPin = AddInPin<InPin<bool>>("Condition");
+        CompletedPin = AddOutPin<OutFlowPin>("Completed");
         IfTruePin = AddOutPin<OutFlowPin>("If True");
         IfFalsePin = AddOutPin<OutFlowPin>("If False");
     }
@@ -32,5 +34,8 @@ public sealed class BranchNode : Node
 
         // Evaluate all connections from the chosen branch
         PinHelper.ContinueFlow(ctx, branchPin);
+
+        // Continue on our merry way
+        PinHelper.ContinueFlow(ctx, CompletedPin);
     }
 }
