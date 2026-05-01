@@ -19,7 +19,7 @@ public sealed class EvaluationContext
     public bool PopBoolean() => Stack.Pop().AsBoolean();
     public string PopString() => Stack.Pop().AsString();
 
-    public void Set(string identifier, Value value) => Variables.Add(identifier, value);
+    public void Set(string identifier, Value value) => Variables[identifier] = value;
     public Value Get(string identifier) => Variables[identifier];
 
     public void ReportError(Node node, string msg) => Errors.Add((node, msg));
