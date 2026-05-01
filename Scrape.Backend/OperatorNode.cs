@@ -32,7 +32,7 @@ public sealed class OperatorNode : Node
         var rhs = ctx.Pop();
         var lhs = ctx.Pop();
 
-        // This node only to be used with numbers, could add it for strings as well but idk if we need that
+        // This node only to be used with numbers
         if (lhs.Type != Value.ValueType.Number || rhs.Type != Value.ValueType.Number)
         {
             // NOTE: Ideally the frontend would prevent this, so the error handling is somewhat minimal (for now)

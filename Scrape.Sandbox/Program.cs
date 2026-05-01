@@ -9,9 +9,10 @@ internal class Program
         var graph = new NodeGraph();
 
         // Nodes for:
-        // while (i<10):
+        // i = 0
+        // while (i < 10):
+        //      i += 1
         //      print(i)
-        //      i++
 
         // Nodes
 
