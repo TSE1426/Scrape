@@ -1,7 +1,9 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Input;
+using Scrape.Backend;
 
 namespace Scrape
 {
@@ -9,7 +11,8 @@ namespace Scrape
     {
         VariableOnly,
         NumberOrVariable,
-        BooleanOnly
+        BooleanOnly,
+        SpriteOnly
     }
     public class Slot
     {
@@ -17,6 +20,13 @@ namespace Scrape
         public SlotType Type { get; private set; }
         public object Value { get; private set; }
         private string placeholder;
+
+        // Backend pin this slot feeds into (set by the tile that owns this slot)
+        public InPin TargetPin;
+
+        // Called whenever the slot value changes. Used by tiles for special slots
+        // like the "counter" slot in a for loop that updates a node's identifier.
+        public Action<Slot> OnValueSet;
 
         public Slot(SlotType type, string placeholder, RoutedEventHandler clickHandler, MouseButtonEventHandler doubleClickHandler)
         {
@@ -41,6 +51,7 @@ namespace Scrape
             Value = variable;
             Button.Content = variable.Name;
             Button.Background = variable.b.Background;
+            OnValueSet?.Invoke(this);
         }
 
         public void SetNumber(double number)
@@ -48,6 +59,15 @@ namespace Scrape
             Value = number;
             Button.Content = number.ToString();
             Button.Background = Brushes.White;
+            OnValueSet?.Invoke(this);
+        }
+
+        public void SetSprite(Sprite sprite)
+        {
+            Value = sprite;
+            Button.Content = sprite.Name;
+            Button.Background = sprite.Color;
+            OnValueSet?.Invoke(this);
         }
 
         public void Clear()
@@ -55,6 +75,7 @@ namespace Scrape
             Value = null;
             Button.Content = placeholder;
             Button.Background = Brushes.White;
+            OnValueSet?.Invoke(this);
         }
     }
 }

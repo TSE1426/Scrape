@@ -1,19 +1,8 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Text;
-//using System.Windows.Controls;
-
-//namespace Scrape
-//{
-//    public abstract class Tile
-//    {
-//        public Button b;
-//    }
-//}
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Scrape.Backend;
 
 namespace Scrape
 {
@@ -57,6 +46,12 @@ namespace Scrape
             block.Child = text;
             return block;
         }
+
+        // Tiles that have a backend representation override this. Default returns null,
+        // which makes the code area fall back to CreateBlock() with no node attached.
+        public virtual BlockInstance CreateBlockInstance(NodeGraph graph)
+        {
+            return null;
+        }
     }
 }
-
