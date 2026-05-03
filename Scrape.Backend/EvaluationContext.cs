@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Scrape.Backend;
 
@@ -7,6 +8,9 @@ public sealed class EvaluationContext
     public readonly Stack<Value> Stack = [];
     public readonly Dictionary<string, Value> Variables = [];
     public readonly List<(Node Node, string Message)> Errors = [];
+
+    // Frontend can register a callback to actually move a sprite when MoveSpriteNode runs
+    public Action<string, double, double>? OnMoveSprite;
 
     public void Push(double value) => Stack.Push(new(value));
     public void Push(bool value) => Stack.Push(new(value));
