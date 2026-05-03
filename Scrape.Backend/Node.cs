@@ -33,8 +33,17 @@ public abstract class Node(string label)
             Debug.Assert(pin.IsInPin());
             // We certainly don't need to enter an infinite loop :P
             if (pin is InFlowPin) continue;
-            // This will recursively call backwards and we should end up with the required inputs on the stack
-            pin.ConnectedPin?.Parent.Evaluate(ctx);
+            if (pin.ConnectedPin is not null)
+            {
+                // This will recursively call backwards and we should end up with the required inputs on the stack
+                pin.ConnectedPin?.Parent.Evaluate(ctx);
+            }
+            else
+            {
+                // If it's a typed input pin it should have a value
+                if (pin.GetType().IsGenericType)
+                    ctx.Push(pin.DefaultValue);
+            }
         }
     }
 }
