@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.VisualBasic;
+using Scrape.Backend;
 
 namespace Scrape;
 
@@ -15,8 +16,12 @@ namespace Scrape;
 public partial class MainWindow : Window
 {
     private AssignmentTile assignmentTile;
+    private ForLoopTile forLoopTile;
+    private MoveSpriteTile moveSpriteTile;
     private Slot selectedSlot = null; // Selected slot for variables to go into in the code
     private List<Variable> variables; // list of variables, will be used to store variables created by the user
+    private List<Sprite> sprites; // list of sprites the user has made
+    private BlockDragManager outputDragManager; // lets us drag sprites in the output area
     private CodeAreaManager codeAreaManager;
     
     public MainWindow()
@@ -24,9 +29,15 @@ public partial class MainWindow : Window
         InitializeComponent();
         assignmentTile = new AssignmentTile(Slot_Click, Slot_DoubleClick);
         assignmentTile.SetupPaletteButton(PaletteTile_Click);
+        forLoopTile = new ForLoopTile(Slot_Click, Slot_DoubleClick);
+        forLoopTile.SetupPaletteButton(PaletteTile_Click);
+        moveSpriteTile = new MoveSpriteTile(Slot_Click, Slot_DoubleClick);
+        moveSpriteTile.SetupPaletteButton(PaletteTile_Click);
         codeAreaManager = new CodeAreaManager(Codearea);
         this.KeyDown += MainWindow_KeyDown; //key event attacher
         variables = new List<Variable>();
+        sprites = new List<Sprite>();
+        outputDragManager = new BlockDragManager(Outputarea);
         InitPalette();
         VariableGridUpdate();
     }
@@ -38,9 +49,9 @@ public partial class MainWindow : Window
     // PALETTE INITIALIZATION CODE
     private void InitPalette()
     {
-        Grid.SetColumn(assignmentTile.b, 0);
-        Grid.SetRow(assignmentTile.b, 2);    
-        TilePalette.Children.Add(assignmentTile.b);      
+        TilesPanel.Children.Add(assignmentTile.b);
+        TilesPanel.Children.Add(forLoopTile.b);
+        TilesPanel.Children.Add(moveSpriteTile.b);
     }
     // END OF PALETTE INITIALIZATION CODE
 
@@ -55,7 +66,7 @@ public partial class MainWindow : Window
 
         if (selectedSlot.Type != SlotType.NumberOrVariable)
         {
-            MessageBox.Show("Only the second slot can take a fixed number.");
+            MessageBox.Show("This slot does not take a number.");
             return;
         }
 
@@ -95,9 +106,19 @@ public partial class MainWindow : Window
                     selectedSlot = null;
                 }
             }
-
             return;
         }
+
+        if (tile is Sprite sprite)
+        {
+            if (selectedSlot != null && selectedSlot.Type == SlotType.SpriteOnly)
+            {
+                selectedSlot.SetSprite(sprite);
+                selectedSlot = null;
+            }
+            return;
+        }
+
         codeAreaManager.AddTileBlock(tile);
     }
     private void Slot_Click(object sender, RoutedEventArgs e)
@@ -131,7 +152,6 @@ public partial class MainWindow : Window
     //RUN / STOP BUTTON CODE
     private void RunButton_Click(object sender, RoutedEventArgs e)
     {
-        
         var b = (Button)sender;
         b.Background = System.Windows.Media.Brushes.LightGreen; // change the run button to green when it's running
         PaletteBorder.Visibility = Visibility.Collapsed;
@@ -141,6 +161,42 @@ public partial class MainWindow : Window
         Grid.SetColumnSpan(OutputBorder, 3);
 
         OutputBorder.Margin = new Thickness(10);
+
+        // build a fresh evaluation context, register sprite movement callback,
+        // give variables a default value, then run the code area's graph.
+        var ctx = new EvaluationContext();
+        ctx.OnMoveSprite = (name, dx, dy) =>
+        {
+            var sp = sprites.Find(s => s.Name == name);
+            sp?.MoveBy(dx, dy);
+        };
+        foreach (var v in variables)
+        {
+            Value def;
+            if (v is stringVariable) def = new Value("");
+            else if (v is boolVariable) def = new Value(false);
+            else def = new Value(0.0);
+            ctx.Set(v.Name, def);
+        }
+
+        try
+        {
+            codeAreaManager.Run(ctx);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Error while running: " + ex.Message);
+        }
+
+        if (ctx.Errors.Count > 0)
+        {
+            string msg = "";
+            foreach (var (node, message) in ctx.Errors)
+            {
+                msg += node.Label + ": " + message + "\n";
+            }
+            MessageBox.Show(msg);
+        }
     }
     private void StopButton_Click(object sender, RoutedEventArgs e)
     {
@@ -156,68 +212,57 @@ public partial class MainWindow : Window
     // END OF RUN / STOP BUTTON CODE
 
     // VARIABLE CREATION UI CODE
-    private void clearVarColumn()
-    {
-        // Remove old variable buttons from column 2 (3rd column)
-        for (int i = TilePalette.Children.Count - 1; i >= 0; i--)
-        {
-            UIElement child = TilePalette.Children[i];
-
-            if (child is Button button && Grid.GetColumn(button) == 2)
-            {
-                TilePalette.Children.RemoveAt(i);
-            }
-        }
-    }
     private void VariableGridUpdate()
     {
-        foreach (Variable v in variables)
-        {
-            TilePalette.Children.Remove(v.b);
-        }
-        int row = 2;
-        foreach (Variable v in variables)
-        {
-            if (v is numberVariable)
-            {
-                v.SetupPaletteButton(PaletteTile_Click);
-                Grid.SetColumn(v.b, 2);
-                Grid.SetRow(v.b, row++);
-                TilePalette.Children.Add(v.b);
-            }
-        }
-        foreach (Variable v in variables)
-        {
-            if (v is stringVariable)
-            {
-                v.b.Tag = v;
-                v.b.Click -= PaletteTile_Click;
-                v.b.Click += PaletteTile_Click;
+        VariablesPanel.Children.Clear();
 
-                Grid.SetColumn(v.b, 2);
-                Grid.SetRow(v.b, row++);
-                TilePalette.Children.Add(v.b);
-            }
+        // show numbers, then strings, then booleans
+        foreach (Variable v in variables)
+        {
+            if (v is numberVariable) AddVariableRow(v);
         }
         foreach (Variable v in variables)
         {
-            if (v is boolVariable)
-            {
-                v.b.Tag = v;
-                v.b.Click -= PaletteTile_Click;
-                v.b.Click += PaletteTile_Click;
-
-                Grid.SetColumn(v.b, 2);
-                Grid.SetRow(v.b, row++);
-                TilePalette.Children.Add(v.b);
-            }
+            if (v is stringVariable) AddVariableRow(v);
         }
+        foreach (Variable v in variables)
+        {
+            if (v is boolVariable) AddVariableRow(v);
+        }
+    }
+    private void AddVariableRow(Variable v)
+    {
+        v.SetupPaletteButton(PaletteTile_Click);
 
-        
+        // [variable button (fills row)] [X delete button]
+        Grid row = new Grid { Margin = new Thickness(0, 1, 0, 1) };
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        Grid.SetColumn(v.b, 0);
+        row.Children.Add(v.b);
+
+        Button del = new Button
+        {
+            Content = "X",
+            Width = 25,
+            Height = 30,
+            Margin = new Thickness(2, 5, 5, 5),
+            Background = System.Windows.Media.Brushes.Salmon
+        };
+        del.Click += (s, e) => DeleteVariable(v);
+        Grid.SetColumn(del, 1);
+        row.Children.Add(del);
+
+        VariablesPanel.Children.Add(row);
+    }
+    private void DeleteVariable(Variable v)
+    {
+        variables.Remove(v);
+        VariableGridUpdate();
     }
     private void NewVarButton_Click(object sender, RoutedEventArgs e) // the new variable button shows the menu we made
     {
-        clearVarColumn();
         NewVarPanel.Visibility = Visibility.Visible;
     }
     private void SaveVarButton_Click(object sender, RoutedEventArgs e) // the save button makes a new variable
@@ -256,4 +301,108 @@ public partial class MainWindow : Window
         VariableGridUpdate(); // update the variable list on the side of the screen
     }
     // END OF VARIABLE CREATION UI CODE
+
+    // SPRITE CREATION UI CODE
+    private void SpriteGridUpdate()
+    {
+        SpritesPanel.Children.Clear();
+        foreach (Sprite s in sprites)
+        {
+            AddSpriteRow(s);
+        }
+    }
+    private void AddSpriteRow(Sprite sp)
+    {
+        sp.SetupPaletteButton(PaletteTile_Click);
+
+        Grid row = new Grid { Margin = new Thickness(0, 1, 0, 1) };
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        Grid.SetColumn(sp.b, 0);
+        row.Children.Add(sp.b);
+
+        Button del = new Button
+        {
+            Content = "X",
+            Width = 25,
+            Height = 30,
+            Margin = new Thickness(2, 5, 5, 5),
+            Background = System.Windows.Media.Brushes.Salmon
+        };
+        del.Click += (s, e) => DeleteSprite(sp);
+        Grid.SetColumn(del, 1);
+        row.Children.Add(del);
+
+        SpritesPanel.Children.Add(row);
+    }
+    private void DeleteSprite(Sprite sp)
+    {
+        sprites.Remove(sp);
+        if (sp.visual != null)
+        {
+            Outputarea.Children.Remove(sp.visual);
+        }
+        SpriteGridUpdate();
+    }
+    private void NewSpriteButton_Click(object sender, RoutedEventArgs e) // open the sprite menu
+    {
+        NewSpritePanel.Visibility = Visibility.Visible;
+    }
+    private void SaveSpriteButton_Click(object sender, RoutedEventArgs e) // make the sprite
+    {
+        string spriteName = SpriteNameTextBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(spriteName))
+        {
+            MessageBox.Show("Enter a sprite name.");
+            return;
+        }
+        else if (sprites.Exists(s => s.Name == spriteName))
+        {
+            MessageBox.Show("Sprite name already exists. Choose a different name.");
+            return;
+        }
+
+        // pick the shape
+        ComboBoxItem shapeItem = SpriteShapeComboBox.SelectedItem as ComboBoxItem;
+        SpriteShape shape;
+        switch (shapeItem.Content.ToString())
+        {
+            case "Circle": shape = SpriteShape.Circle; break;
+            case "Triangle": shape = SpriteShape.Triangle; break;
+            default: shape = SpriteShape.Square; break;
+        }
+
+        // pick the color
+        ComboBoxItem colorItem = SpriteColorComboBox.SelectedItem as ComboBoxItem;
+        System.Windows.Media.Brush color;
+        switch (colorItem.Content.ToString())
+        {
+            case "Blue": color = System.Windows.Media.Brushes.CornflowerBlue; break;
+            case "Green": color = System.Windows.Media.Brushes.MediumSeaGreen; break;
+            case "Yellow": color = System.Windows.Media.Brushes.Gold; break;
+            default: color = System.Windows.Media.Brushes.IndianRed; break;
+        }
+
+        Sprite newSprite = new Sprite(spriteName, shape, color);
+        sprites.Add(newSprite);
+
+        // put the visual on the output area and make it draggable
+        var visual = newSprite.CreateVisual();
+        Canvas.SetLeft(visual, 50 + (sprites.Count * 10));
+        Canvas.SetTop(visual, 50 + (sprites.Count * 10));
+        Outputarea.Children.Add(visual);
+        outputDragManager.Attach(visual);
+
+        CancelSpriteButton_Click(sender, e);
+    }
+    private void CancelSpriteButton_Click(object sender, RoutedEventArgs e) // close the sprite menu
+    {
+        SpriteNameTextBox.Clear();
+        SpriteShapeComboBox.SelectedIndex = 0;
+        SpriteColorComboBox.SelectedIndex = 0;
+        NewSpritePanel.Visibility = Visibility.Collapsed;
+        SpriteGridUpdate();
+    }
+    // END OF SPRITE CREATION UI CODE
 }

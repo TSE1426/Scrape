@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -10,10 +11,12 @@ namespace Scrape
         private UIElement draggedBlock = null;
         private Point clickPosition;
         private readonly Canvas canvas;
+        private readonly Action<UIElement> onDropped;
 
-        public BlockDragManager(Canvas targetCanvas)
+        public BlockDragManager(Canvas targetCanvas, Action<UIElement> onDropped = null)
         {
             canvas = targetCanvas;
+            this.onDropped = onDropped;
         }
 
         public void Attach(UIElement block)
@@ -48,14 +51,34 @@ namespace Scrape
             double offsetX = currentPosition.X - clickPosition.X;
             double offsetY = currentPosition.Y - clickPosition.Y;
 
-            Canvas.SetLeft(draggedBlock, left + offsetX);
-            Canvas.SetTop(draggedBlock, top + offsetY);
+            double newLeft = left + offsetX;
+            double newTop = top + offsetY;
+
+            // keep the block inside the canvas
+            var fe = draggedBlock as FrameworkElement;
+            double w = fe?.ActualWidth ?? 0;
+            double h = fe?.ActualHeight ?? 0;
+
+            if (canvas.ActualWidth > 0)
+                newLeft = Math.Max(0, Math.Min(newLeft, canvas.ActualWidth - w));
+            else
+                newLeft = Math.Max(0, newLeft);
+
+            if (canvas.ActualHeight > 0)
+                newTop = Math.Max(0, Math.Min(newTop, canvas.ActualHeight - h));
+            else
+                newTop = Math.Max(0, newTop);
+
+            Canvas.SetLeft(draggedBlock, newLeft);
+            Canvas.SetTop(draggedBlock, newTop);
 
             clickPosition = currentPosition;
         }
 
         private void Block_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
+            UIElement dropped = draggedBlock;
+
             if (draggedBlock != null)
             {
                 draggedBlock.ReleaseMouseCapture();
@@ -63,6 +86,11 @@ namespace Scrape
 
             isDragging = false;
             draggedBlock = null;
+
+            if (dropped != null)
+            {
+                onDropped?.Invoke(dropped);
+            }
         }
     }
 }

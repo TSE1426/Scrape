@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Input;
+using Scrape.Backend;
 
 namespace Scrape
 {
@@ -21,6 +22,18 @@ namespace Scrape
 
         public override Border CreateBlock()
         {
+            // kept for backwards compatibility, but CreateBlockInstance is what's used
+            return CreateBlockInstance(new NodeGraph()).Border;
+        }
+
+        public override BlockInstance CreateBlockInstance(NodeGraph graph)
+        {
+            // Backend: SetVariableNode. The variable name comes from the left slot,
+            // the value comes from the right slot.
+            var setVar = new SetVariableNode("");
+            graph.AddNode(setVar);
+
+            // Visual border
             Border block = new Border
             {
                 BorderBrush = Brushes.Black,
@@ -30,13 +43,18 @@ namespace Scrape
                 Padding = new Thickness(8)
             };
 
-            StackPanel layout = new StackPanel
-            {
-                Orientation = Orientation.Horizontal
-            };
+            StackPanel layout = new StackPanel { Orientation = Orientation.Horizontal };
 
             Slot leftSlot = new Slot(SlotType.VariableOnly, "variable", slotClickHandler, slotDoubleClickHandler);
             Slot rightSlot = new Slot(SlotType.NumberOrVariable, "value", slotClickHandler, slotDoubleClickHandler);
+
+            // left slot: when a variable is picked, update the node identifier
+            leftSlot.OnValueSet = s =>
+            {
+                if (s.Value is Variable v) setVar.Identifier = v.Name;
+            };
+            // right slot: feeds into ValuePin at run time
+            rightSlot.TargetPin = setVar.ValuePin;
 
             TextBlock equalsText = new TextBlock
             {
@@ -50,7 +68,18 @@ namespace Scrape
             layout.Children.Add(rightSlot.Button);
 
             block.Child = layout;
-            return block;
+
+            BlockInstance inst = new BlockInstance
+            {
+                Border = block,
+                Node = setVar,
+                InFlow = setVar.InFlowPin,
+                OutFlow = setVar.OutFlowPin
+            };
+            inst.Slots.Add(leftSlot);
+            inst.Slots.Add(rightSlot);
+            inst.AllNodes.Add(setVar);
+            return inst;
         }
     }
 }

@@ -6,12 +6,12 @@
         xmlns:local="clr-namespace:Scrape"
         mc:Ignorable="d"
         Title="Press any button"
-        Height="450"
-        Width="800">
+        Height="500"
+        Width="900">
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="240"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
@@ -24,51 +24,62 @@
                 BorderThickness="1"
                 Background="#EEE">
 
-            <Grid x:Name="TilePalette" Margin="5">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+            <DockPanel LastChildFill="True">
 
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <!-- Top label -->
-                <TextBlock Grid.Row="0"
-                           Grid.Column="0"
-                           Grid.ColumnSpan="3"
-                           Text="Tile Palette"
-                           FontWeight="Bold"
-                           FontSize="16"
-                           Margin="5"
-                           HorizontalAlignment="Center"/>
-
-                <!-- Buttons -->
-                <Button x:Name="newVarButton"
-                        Grid.Row="1"
-                        Grid.Column="0"
-                        Grid.ColumnSpan="3"
-                        Content="New Variable"
+                <!-- Sprite creation panel (docked at bottom, only shown when needed) -->
+                <Border x:Name="NewSpritePanel"
+                        DockPanel.Dock="Bottom"
                         Margin="5"
-                        Height="30"
-                        Click="NewVarButton_Click"/>
+                        Padding="8"
+                        BorderBrush="Black"
+                        BorderThickness="1"
+                        Background="White"
+                        Visibility="Collapsed">
 
-                <!-- Variable panel -->
+                    <StackPanel>
+                        <TextBlock Text="Create Sprite"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,8"/>
+
+                        <TextBlock Text="Name"/>
+                        <TextBox x:Name="SpriteNameTextBox"
+                                 Margin="0,3,0,8"/>
+
+                        <TextBlock Text="Shape"/>
+                        <ComboBox x:Name="SpriteShapeComboBox"
+                                  Margin="0,3,0,8"
+                                  SelectedIndex="0">
+                            <ComboBoxItem Content="Square"/>
+                            <ComboBoxItem Content="Circle"/>
+                            <ComboBoxItem Content="Triangle"/>
+                        </ComboBox>
+
+                        <TextBlock Text="Color"/>
+                        <ComboBox x:Name="SpriteColorComboBox"
+                                  Margin="0,3,0,8"
+                                  SelectedIndex="0">
+                            <ComboBoxItem Content="Red"/>
+                            <ComboBoxItem Content="Blue"/>
+                            <ComboBoxItem Content="Green"/>
+                            <ComboBoxItem Content="Yellow"/>
+                        </ComboBox>
+
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Right">
+                            <Button Content="Save"
+                                    Width="60"
+                                    Margin="0,0,5,0"
+                                    Click="SaveSpriteButton_Click"/>
+                            <Button Content="Cancel"
+                                    Width="60"
+                                    Click="CancelSpriteButton_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Variable creation panel (docked at bottom) -->
                 <Border x:Name="NewVarPanel"
-                        Grid.Row="4"
-                        Grid.Column="0"
-                        Grid.ColumnSpan="3"
+                        DockPanel.Dock="Bottom"
                         Margin="5"
                         Padding="8"
                         BorderBrush="Black"
@@ -106,7 +117,46 @@
                         </StackPanel>
                     </StackPanel>
                 </Border>
-            </Grid>
+
+                <!-- Scrollable button area (fills remaining space) -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="5">
+
+                        <TextBlock Text="Tile Palette"
+                                   FontWeight="Bold"
+                                   FontSize="16"
+                                   HorizontalAlignment="Center"
+                                   Margin="5"/>
+
+                        <TextBlock Text="Tiles"
+                                   FontWeight="Bold"
+                                   Margin="2,8,2,2"/>
+                        <StackPanel x:Name="TilesPanel"/>
+
+                        <TextBlock Text="Sprites"
+                                   FontWeight="Bold"
+                                   Margin="2,8,2,2"/>
+                        <Button x:Name="newSpriteButton"
+                                Content="New Sprite"
+                                Margin="5"
+                                Height="30"
+                                Click="NewSpriteButton_Click"/>
+                        <StackPanel x:Name="SpritesPanel"/>
+
+                        <TextBlock Text="Variables"
+                                   FontWeight="Bold"
+                                   Margin="2,8,2,2"/>
+                        <Button x:Name="newVarButton"
+                                Content="New Variable"
+                                Margin="5"
+                                Height="30"
+                                Click="NewVarButton_Click"/>
+                        <StackPanel x:Name="VariablesPanel"/>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
         </Border>
 
         <!-- Middle block workspace -->
