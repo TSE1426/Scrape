@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 
 namespace Scrape.Backend;
 
@@ -28,6 +28,9 @@ public abstract class Pin
     public abstract PinType GetPinType();
     public bool IsInPin() => GetPinType() == PinType.In;
     public bool IsOutPin() => GetPinType() == PinType.Out;
+
+    public abstract void Connect(Pin pin);
+    public abstract void Disconnect(Pin pin);
 }
 
 public class InPin(string label, Node parent) : Pin(label, parent), IPinFactory<InPin>
@@ -37,13 +40,26 @@ public class InPin(string label, Node parent) : Pin(label, parent), IPinFactory<
 
     public void Connect(OutPin pin)
     {
+        if (ConnectedPin is not null)
+            Disconnect(ConnectedPin);
         ConnectedPin = pin;
         pin.ConnectedPins.Add(this);
     }
+    public override void Connect(Pin pin)
+    {
+        Debug.Assert(pin is OutPin);
+        Connect((OutPin)pin);
+    }
+
     public void Disconnect(OutPin pin)
     {
         ConnectedPin = null;
         pin.ConnectedPins.Remove(this);
+    }
+    public override void Disconnect(Pin pin)
+    {
+        Debug.Assert(pin is OutPin);
+        Disconnect((OutPin)pin);
     }
 
     public static InPin Create(string label, Node parent) => new(label, parent);
@@ -59,16 +75,18 @@ public class OutPin(string label, Node parent) : Pin(label, parent), IPinFactory
     public readonly HashSet<InPin> ConnectedPins = [];
     public override PinType GetPinType() => PinType.Out;
 
-    public void Connect(InPin pin)
+    public void Connect(InPin pin) => pin.Connect(this);
+    public override void Connect(Pin pin)
     {
-        ConnectedPins.Add(pin);
-        pin.ConnectedPin = this;
+        Debug.Assert(pin is OutPin);
+        Connect((OutPin)pin);
     }
 
-    public void Disconnect(InPin pin)
+    public void Disconnect(InPin pin) => pin.Disconnect(this);
+    public override void Disconnect(Pin pin)
     {
-        ConnectedPins.Remove(pin);
-        pin.ConnectedPin = null;
+        Debug.Assert(pin is InPin);
+        Disconnect((InPin)pin);
     }
 
     public static OutPin Create(string label, Node parent) => new(label, parent);
