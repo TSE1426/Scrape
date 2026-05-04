@@ -37,15 +37,7 @@ namespace Scrape
 
             compare.ResultPin.Connect(branch.CondPin);
 
-            // Visual style for the block
-            Border block = new Border
-            {
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(1),
-                Background = Brushes.LightSalmon,
-                CornerRadius = new CornerRadius(5),
-                Padding = new Thickness(8)
-            };
+            Border block;
 
             StackPanel row = new StackPanel { Orientation = Orientation.Horizontal };
 
@@ -105,7 +97,23 @@ namespace Scrape
             row.Children.Add(opSelector);
             row.Children.Add(rhsSlot.Button);
 
-            block.Child = row;
+            var layout = new StackPanel { Orientation = Orientation.Vertical };
+            layout.Children.Add(row);
+            layout.Children.Add(new TextBlock
+            {
+                Text = "↳ if body (drop blocks under this)",
+                Margin = new Thickness(16, 4, 0, 4),
+                FontSize = 11,
+                Opacity = 0.8
+            });
+            layout.Children.Add(new TextBlock
+            {
+                Text = "end if",
+                Margin = new Thickness(0, 2, 0, 0),
+                FontWeight = FontWeights.SemiBold
+            });
+
+            block = CreateStyledBlock(Brushes.LightSalmon, layout);
 
             BlockInstance inst = new BlockInstance
             {
