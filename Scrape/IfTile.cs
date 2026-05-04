@@ -31,7 +31,11 @@ namespace Scrape
         public override BlockInstance CreateBlockInstance(NodeGraph graph)
         {
             var branch = new BranchNode();
+            var compare = new CompareNode { Operation = CompareNode.OperationType.Equal };
             graph.AddNode(branch);
+            graph.AddNode(compare);
+
+            compare.ResultPin.Connect(branch.CondPin);
 
             // Visual style for the block
             Border block = new Border
@@ -45,18 +49,50 @@ namespace Scrape
 
             StackPanel row = new StackPanel { Orientation = Orientation.Horizontal };
 
-            // Create slot for the boolean condition
-            Slot condSlot = new Slot(
-                SlotType.BooleanOrVariable,
-                "condition",
+            // Create slots for left/right operands
+            Slot lhsSlot = new Slot(
+                SlotType.NumberOrVariable,
+                "left",
                 slotClickHandler,
                 slotDoubleClickHandler
             )
             {
-                TargetPin = branch.CondPin
+                TargetPin = compare.LhsPin
             };
 
-            // Simple label
+            Slot rhsSlot = new Slot(
+                SlotType.NumberOrVariable,
+                "right",
+                slotClickHandler,
+                slotDoubleClickHandler
+            )
+            {
+                TargetPin = compare.RhsPin
+            };
+
+            ComboBox opSelector = new ComboBox
+            {
+                Width = 52,
+                Margin = new Thickness(4, 0, 4, 0),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            opSelector.Items.Add("=");
+            opSelector.Items.Add("!=");
+            opSelector.Items.Add(">");
+            opSelector.Items.Add("<");
+            opSelector.SelectedIndex = 0;
+            opSelector.SelectionChanged += (s, e) =>
+            {
+                compare.Operation = opSelector.SelectedIndex switch
+                {
+                    0 => CompareNode.OperationType.Equal,
+                    1 => CompareNode.OperationType.NotEqual,
+                    2 => CompareNode.OperationType.GreaterThan,
+                    3 => CompareNode.OperationType.LessThan,
+                    _ => CompareNode.OperationType.Equal,
+                };
+            };
+
             TextBlock ifLabel = new TextBlock
             {
                 Text = "if",
@@ -65,7 +101,9 @@ namespace Scrape
             };
 
             row.Children.Add(ifLabel);
-            row.Children.Add(condSlot.Button);
+            row.Children.Add(lhsSlot.Button);
+            row.Children.Add(opSelector);
+            row.Children.Add(rhsSlot.Button);
 
             block.Child = row;
 
@@ -77,10 +115,11 @@ namespace Scrape
                 OutFlow = branch.CompletedPin
             };
 
-            inst.Slots.Add(condSlot);
+            inst.Slots.Add(lhsSlot);
+            inst.Slots.Add(rhsSlot);
             inst.AllNodes.Add(branch);
+            inst.AllNodes.Add(compare);
             return inst;
         }
     }
 }
-
