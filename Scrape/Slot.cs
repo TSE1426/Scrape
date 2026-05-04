@@ -12,6 +12,7 @@ namespace Scrape
         VariableOnly,
         NumberOrVariable,
         BooleanOnly,
+        BooleanOrVariable,
         SpriteOnly
     }
     public class Slot
