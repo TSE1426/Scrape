@@ -2,7 +2,6 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using Scrape.Backend;
 
 namespace Scrape
@@ -23,57 +22,6 @@ namespace Scrape
             b.Tag = this;
             b.Click -= clickHandler;
             b.Click += clickHandler;
-        }
-
-        protected Border CreateStyledBlock(Brush background, UIElement content, bool showArrow = true)
-        {
-            var shell = new StackPanel { Orientation = Orientation.Vertical };
-
-            shell.Children.Add(new Rectangle
-            {
-                Width = 18,
-                Height = 5,
-                Fill = Brushes.White,
-                Stroke = Brushes.Black,
-                StrokeThickness = 1,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(12, -1, 0, 0)
-            });
-
-            var row = new DockPanel();
-            if (showArrow)
-            {
-                row.Children.Add(new TextBlock
-                {
-                    Text = "➜",
-                    FontSize = 12,
-                    Margin = new Thickness(0, 0, 6, 0),
-                    VerticalAlignment = VerticalAlignment.Center
-                });
-            }
-            row.Children.Add(content);
-            shell.Children.Add(row);
-
-            shell.Children.Add(new Rectangle
-            {
-                Width = 18,
-                Height = 5,
-                Fill = Brushes.White,
-                Stroke = Brushes.Black,
-                StrokeThickness = 1,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(24, 0, 0, -1)
-            });
-
-            return new Border
-            {
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(1),
-                Background = background,
-                CornerRadius = new CornerRadius(5),
-                Padding = new Thickness(8, 6, 8, 6),
-                Child = shell
-            };
         }
 
         public virtual Border CreateBlock()
