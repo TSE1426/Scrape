@@ -12,11 +12,13 @@ namespace Scrape
         private Point clickPosition;
         private readonly Canvas canvas;
         private readonly Action<UIElement> onDropped;
+        private readonly Action<UIElement> onDragged;
 
-        public BlockDragManager(Canvas targetCanvas, Action<UIElement> onDropped = null)
+        public BlockDragManager(Canvas targetCanvas, Action<UIElement> onDropped = null, Action<UIElement> onDragged = null)
         {
             canvas = targetCanvas;
             this.onDropped = onDropped;
+            this.onDragged = onDragged;
         }
 
         public void Attach(UIElement block)
@@ -71,6 +73,7 @@ namespace Scrape
 
             Canvas.SetLeft(draggedBlock, newLeft);
             Canvas.SetTop(draggedBlock, newTop);
+            onDragged?.Invoke(draggedBlock);
 
             clickPosition = currentPosition;
         }
