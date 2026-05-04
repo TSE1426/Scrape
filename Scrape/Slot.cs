@@ -40,6 +40,8 @@ namespace Scrape
                 MinWidth = 70,
                 Margin = new Thickness(2),
                 Background = Brushes.White,
+                BorderBrush = Brushes.Gray,
+                BorderThickness = new Thickness(1),
                 Tag = this
             };
 

@@ -259,13 +259,37 @@ namespace Scrape
                 chainIndex++;
 
                 int step = 1;
+                int indentLevel = 1;
+                var blockStack = new Stack<string>();
+
                 BlockInstance current = inst;
                 while (current != null)
                 {
                     string label = (current.Border.Child as TextBlock)?.Text ?? current.Node?.Label ?? "Block";
-                    lines.Add($"  {step}. {label}");
+                    string indent = new string(' ', indentLevel * 2);
+                    lines.Add($"{indent}{step}. {label}");
+
+                    if (current.Node is LoopNode)
+                    {
+                        blockStack.Push("end for");
+                        indentLevel++;
+                    }
+                    else if (current.Node is BranchNode)
+                    {
+                        blockStack.Push("end if");
+                        indentLevel++;
+                    }
+
                     step++;
                     current = current.Below;
+                }
+
+                while (blockStack.Count > 0)
+                {
+                    indentLevel = Math.Max(1, indentLevel - 1);
+                    string indent = new string(' ', indentLevel * 2);
+                    lines.Add($"{indent}{step}. {blockStack.Pop()}");
+                    step++;
                 }
             }
 
