@@ -16,6 +16,8 @@ namespace Scrape
 
         public BlockInstance Above;      // block snapped above us (null if top)
         public BlockInstance Below;      // block snapped below us (null if bottom)
+        public string PseudocodeLabel;   // optional label override used in program text export
+        public bool IsLocked;            // true for fixed blocks like Program Start
 
         public BlockInstance()
         {

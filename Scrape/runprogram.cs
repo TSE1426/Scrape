@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Policy;
-using System.Text;
+using System;
 
 namespace Scrape
 {
     internal class RunProgram
     {
-        public static void start(List<Tile> nodes)
+        public static string Start(CodeAreaManager codeAreaManager)
         {
-            throw new NotImplementedException();
-            // this is the function which will call a backend function
+            if (codeAreaManager == null)
+            {
+                throw new ArgumentNullException(nameof(codeAreaManager));
+            }
+
+            return codeAreaManager.BuildProgramText();
         }
     }
 }
