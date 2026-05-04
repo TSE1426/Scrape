@@ -11,6 +11,7 @@ namespace Scrape
         private readonly Canvas codeArea;
         private readonly BlockDragManager dragManager;
         private readonly List<BlockInstance> instances = new();
+        private readonly BlockInstance programStart;
 
         public NodeGraph Graph { get; }
 
@@ -19,6 +20,9 @@ namespace Scrape
             codeArea = canvas;
             Graph = new NodeGraph();
             dragManager = new BlockDragManager(codeArea, OnBlockDropped, OnBlockDragged);
+            programStart = CreateProgramStartBlock();
+            instances.Add(programStart);
+            codeArea.Children.Add(programStart.Border);
         }
 
         public void AddTileBlock(Tile tile)
@@ -42,6 +46,19 @@ namespace Scrape
 
                 codeArea.Children.Add(inst.Border);
                 dragManager.Attach(inst.Border);
+
+                if (tile is ForLoopTile)
+                {
+                    var endFor = new EndBlockTile("end for").CreateBlockInstance(Graph);
+                    AddBlockInstance(endFor);
+                    Connect(inst, endFor);
+                }
+                else if (tile is IfTile)
+                {
+                    var endIf = new EndBlockTile("end if").CreateBlockInstance(Graph);
+                    AddBlockInstance(endIf);
+                    Connect(inst, endIf);
+                }
             }
             else
             {
@@ -54,10 +71,55 @@ namespace Scrape
             }
         }
 
+
+        private void AddBlockInstance(BlockInstance inst)
+        {
+            instances.Add(inst);
+            Canvas.SetLeft(inst.Border, 20);
+            Canvas.SetTop(inst.Border, 20 + (codeArea.Children.Count * 50));
+            inst.Border.Tag = inst;
+
+            var menu = new ContextMenu();
+            var deleteItem = new MenuItem { Header = "Delete" };
+            deleteItem.Click += (s, e) => Delete(inst);
+            menu.Items.Add(deleteItem);
+            inst.Border.ContextMenu = menu;
+
+            codeArea.Children.Add(inst.Border);
+            if (!inst.IsLocked)
+            {
+                dragManager.Attach(inst.Border);
+            }
+        }
+
+        private static BlockInstance CreateProgramStartBlock()
+        {
+            var border = new Border
+            {
+                BorderBrush = System.Windows.Media.Brushes.Black,
+                BorderThickness = new Thickness(1),
+                Background = System.Windows.Media.Brushes.LightGreen,
+                CornerRadius = new CornerRadius(5),
+                Padding = new Thickness(8),
+                Child = new TextBlock { Text = "Program Start" },
+            };
+
+            Canvas.SetLeft(border, 20);
+            Canvas.SetTop(border, 20);
+
+            return new BlockInstance
+            {
+                Border = border,
+                PseudocodeLabel = "Program Start",
+                IsLocked = true,
+            };
+        }
+
         // Remove a block from the canvas and the graph. Reconnects the chain
         // around it: if it had Above and Below, they become snapped together.
         public void Delete(BlockInstance inst)
         {
+            if (inst.IsLocked) return;
             BlockInstance above = inst.Above;
             BlockInstance below = inst.Below;
 
@@ -251,8 +313,11 @@ namespace Scrape
             var lines = new List<string>();
             int chainIndex = 1;
 
+            lines.Add("Program Start");
+
             foreach (var inst in instances)
             {
+                if (inst.IsLocked) continue;
                 if (inst.Above != null) continue;
 
                 lines.Add($"Chain {chainIndex}:");
@@ -265,7 +330,7 @@ namespace Scrape
                 BlockInstance current = inst;
                 while (current != null)
                 {
-                    string label = (current.Border.Child as TextBlock)?.Text ?? current.Node?.Label ?? "Block";
+                    string label = current.PseudocodeLabel ?? (current.Border.Child as TextBlock)?.Text ?? current.Node?.Label ?? "Block";
                     string indent = new string(' ', indentLevel * 2);
                     lines.Add($"{indent}{step}. {label}");
 
