@@ -18,7 +18,7 @@ namespace Scrape
         {
             codeArea = canvas;
             Graph = new NodeGraph();
-            dragManager = new BlockDragManager(codeArea, OnBlockDropped);
+            dragManager = new BlockDragManager(codeArea, OnBlockDropped, OnBlockDragged);
         }
 
         public void AddTileBlock(Tile tile)
@@ -137,15 +137,39 @@ namespace Scrape
 
         private void Connect(BlockInstance upper, BlockInstance lower)
         {
-            // visual: snap exactly under the upper block
-            Canvas.SetLeft(lower.Border, Canvas.GetLeft(upper.Border));
-            Canvas.SetTop(lower.Border, Canvas.GetTop(upper.Border) + upper.Border.ActualHeight);
+            // visual: snap exactly under the upper block and move lower chain with it
+            MoveChain(lower, Canvas.GetLeft(upper.Border), Canvas.GetTop(upper.Border) + upper.Border.ActualHeight);
 
             // backend: connect flow pins
             upper.OutFlow.Connect(lower.InFlow);
 
             upper.Below = lower;
             lower.Above = upper;
+        }
+
+        private void OnBlockDragged(UIElement element)
+        {
+            if (element is not Border border) return;
+            if (border.Tag is not BlockInstance inst) return;
+            if (inst.Below == null) return;
+
+            double nextLeft = Canvas.GetLeft(inst.Border);
+            double nextTop = Canvas.GetTop(inst.Border) + inst.Border.ActualHeight;
+            MoveChain(inst.Below, nextLeft, nextTop);
+        }
+
+        private void MoveChain(BlockInstance root, double left, double top)
+        {
+            BlockInstance current = root;
+            double currentTop = top;
+
+            while (current != null)
+            {
+                Canvas.SetLeft(current.Border, left);
+                Canvas.SetTop(current.Border, currentTop);
+                currentTop += current.Border.ActualHeight;
+                current = current.Below;
+            }
         }
 
         private void Disconnect(BlockInstance upper, BlockInstance lower)
@@ -220,6 +244,32 @@ namespace Scrape
             {
                 Graph.StartNode.StartPin.Disconnect(inPin);
             }
+        }
+
+        public string BuildProgramText()
+        {
+            var lines = new List<string>();
+            int chainIndex = 1;
+
+            foreach (var inst in instances)
+            {
+                if (inst.Above != null) continue;
+
+                lines.Add($"Chain {chainIndex}:");
+                chainIndex++;
+
+                int step = 1;
+                BlockInstance current = inst;
+                while (current != null)
+                {
+                    string label = (current.Border.Child as TextBlock)?.Text ?? current.Node?.Label ?? "Block";
+                    lines.Add($"  {step}. {label}");
+                    step++;
+                    current = current.Below;
+                }
+            }
+
+            return string.Join(Environment.NewLine, lines);
         }
     }
 }
