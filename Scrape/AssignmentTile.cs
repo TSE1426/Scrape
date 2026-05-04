@@ -34,14 +34,7 @@ namespace Scrape
             graph.AddNode(setVar);
 
             // Visual border
-            Border block = new Border
-            {
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(1),
-                Background = Brushes.Khaki,
-                CornerRadius = new CornerRadius(5),
-                Padding = new Thickness(8)
-            };
+            Border block;
 
             StackPanel layout = new StackPanel { Orientation = Orientation.Horizontal };
 
@@ -67,7 +60,7 @@ namespace Scrape
             layout.Children.Add(equalsText);
             layout.Children.Add(rightSlot.Button);
 
-            block.Child = layout;
+            block = CreateStyledBlock(Brushes.Khaki, layout);
 
             BlockInstance inst = new BlockInstance
             {

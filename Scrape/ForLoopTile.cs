@@ -44,15 +44,7 @@ namespace Scrape
             loop.BodyPin.Connect(counterSet.InFlowPin);
             counterSet.ValuePin.Connect(loop.CurrentPin);
 
-            // Visual border
-            Border block = new Border
-            {
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(1),
-                Background = Brushes.LightSteelBlue,
-                CornerRadius = new CornerRadius(5),
-                Padding = new Thickness(8)
-            };
+            Border block;
 
             StackPanel row = new StackPanel { Orientation = Orientation.Horizontal };
 
@@ -94,7 +86,23 @@ namespace Scrape
             row.Children.Add(toLabel);
             row.Children.Add(endSlot.Button);
 
-            block.Child = row;
+            var layout = new StackPanel { Orientation = Orientation.Vertical };
+            layout.Children.Add(row);
+            layout.Children.Add(new TextBlock
+            {
+                Text = "↳ loop body (drop blocks under this)",
+                Margin = new Thickness(16, 4, 0, 4),
+                FontSize = 11,
+                Opacity = 0.8
+            });
+            layout.Children.Add(new TextBlock
+            {
+                Text = "end for",
+                Margin = new Thickness(0, 2, 0, 0),
+                FontWeight = FontWeights.SemiBold
+            });
+
+            block = CreateStyledBlock(Brushes.LightSteelBlue, layout);
 
             BlockInstance inst = new BlockInstance
             {

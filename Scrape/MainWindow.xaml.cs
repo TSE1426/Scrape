@@ -19,7 +19,7 @@ public partial class MainWindow : Window
     private ForLoopTile forLoopTile;
     private MoveSpriteTile moveSpriteTile;
     private IfTile ifTile;
-    private Slot selectedSlot = null; // Selected slot for variables to go into in the code
+    private Slot selectedSlot = null; // currently selected slot in the code area
     private List<Variable> variables; // list of variables, will be used to store variables created by the user
     private List<Sprite> sprites; // list of sprites the user has made
     private BlockDragManager outputDragManager; // lets us drag sprites in the output area
@@ -60,6 +60,34 @@ public partial class MainWindow : Window
     // END OF PALETTE INITIALIZATION CODE
 
     // PALETTE TILE DRAG AND DROP CODE
+    private void SetSelectedSlot(Slot slot)
+    {
+        if (selectedSlot == slot)
+        {
+            ClearSelectedSlot();
+            return;
+        }
+
+        ClearSelectedSlot();
+        selectedSlot = slot;
+        if (selectedSlot != null)
+        {
+            selectedSlot.Button.BorderBrush = System.Windows.Media.Brushes.DodgerBlue;
+            selectedSlot.Button.BorderThickness = new Thickness(2);
+        }
+    }
+
+    private void ClearSelectedSlot()
+    {
+        if (selectedSlot != null)
+        {
+            selectedSlot.Button.BorderBrush = System.Windows.Media.Brushes.Gray;
+            selectedSlot.Button.BorderThickness = new Thickness(1);
+        }
+
+        selectedSlot = null;
+    }
+
     private void FillSelectedSlotWithNumber()
     {
         if (selectedSlot == null)
@@ -84,7 +112,6 @@ public partial class MainWindow : Window
         if (double.TryParse(input, out double number))
         {
             selectedSlot.SetNumber(number);
-            selectedSlot = null;
         }
         else
         {
@@ -107,7 +134,6 @@ public partial class MainWindow : Window
                     selectedSlot.Type == SlotType.NumberOrVariable)
                 {
                     selectedSlot.SetVariable(variable);
-                    selectedSlot = null;
                 }
             }
             return;
@@ -118,7 +144,6 @@ public partial class MainWindow : Window
             if (selectedSlot != null && selectedSlot.Type == SlotType.SpriteOnly)
             {
                 selectedSlot.SetSprite(sprite);
-                selectedSlot = null;
             }
             return;
         }
@@ -133,7 +158,7 @@ public partial class MainWindow : Window
         Slot clickedSlot = clickedButton.Tag as Slot;
         if (clickedSlot == null) return; 
 
-        selectedSlot = clickedSlot;
+        SetSelectedSlot(clickedSlot);
     }
     private void Slot_DoubleClick(object sender, MouseButtonEventArgs e)
     {
@@ -148,7 +173,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        selectedSlot = clickedSlot;
+        SetSelectedSlot(clickedSlot);
         FillSelectedSlotWithNumber();
     }
     // END OF PALETTE TILE DRAG AND DROP CODE
