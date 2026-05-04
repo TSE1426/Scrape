@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     private AssignmentTile assignmentTile;
     private ForLoopTile forLoopTile;
     private MoveSpriteTile moveSpriteTile;
+    private IfTile ifTile;
     private Slot selectedSlot = null; // Selected slot for variables to go into in the code
     private List<Variable> variables; // list of variables, will be used to store variables created by the user
     private List<Sprite> sprites; // list of sprites the user has made
@@ -33,6 +34,8 @@ public partial class MainWindow : Window
         forLoopTile.SetupPaletteButton(PaletteTile_Click);
         moveSpriteTile = new MoveSpriteTile(Slot_Click, Slot_DoubleClick);
         moveSpriteTile.SetupPaletteButton(PaletteTile_Click);
+        ifTile = new IfTile(Slot_Click, Slot_DoubleClick);
+        ifTile.SetupPaletteButton(PaletteTile_Click);
         codeAreaManager = new CodeAreaManager(Codearea);
         this.KeyDown += MainWindow_KeyDown; //key event attacher
         variables = new List<Variable>();
@@ -52,6 +55,7 @@ public partial class MainWindow : Window
         TilesPanel.Children.Add(assignmentTile.b);
         TilesPanel.Children.Add(forLoopTile.b);
         TilesPanel.Children.Add(moveSpriteTile.b);
+        TilesPanel.Children.Add(ifTile.b);
     }
     // END OF PALETTE INITIALIZATION CODE
 
