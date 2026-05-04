@@ -30,14 +30,7 @@ namespace Scrape
             var move = new MoveSpriteNode("");
             graph.AddNode(move);
 
-            Border block = new Border
-            {
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(1),
-                Background = Brushes.PaleGreen,
-                CornerRadius = new CornerRadius(5),
-                Padding = new Thickness(8)
-            };
+            Border block;
 
             StackPanel row = new StackPanel { Orientation = Orientation.Horizontal };
 
@@ -79,7 +72,7 @@ namespace Scrape
             row.Children.Add(commaLabel);
             row.Children.Add(dySlot.Button);
 
-            block.Child = row;
+            block = CreateStyledBlock(Brushes.PaleGreen, row);
 
             BlockInstance inst = new BlockInstance
             {
