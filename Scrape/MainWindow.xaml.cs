@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using Scrape.Backend;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.VisualBasic;
-using Scrape.Backend;
+using System.Windows.Media;
 
 namespace Scrape;
 
@@ -15,6 +16,186 @@ namespace Scrape;
 /// </summary>
 public partial class MainWindow : Window
 {
+
+    // for save / load
+    public List<Variable> GetVariables()
+    {
+        return variables;
+    }
+
+    public List<Sprite> GetSprites()
+    {
+        return sprites;
+    }
+
+    public CodeAreaManager GetCodeAreaManager()
+    {
+        return codeAreaManager;
+    }
+
+    public void LoadProgramFromString(string json)
+    {
+        SaveData data = System.Text.Json.JsonSerializer.Deserialize<SaveData>(json);
+
+        if (data == null) return;
+
+        codeAreaManager.ClearProgram();
+
+        variables.Clear();
+        sprites.Clear();
+        Outputarea.Children.Clear();
+
+        foreach (var savedVar in data.Variables)
+        {
+            switch (savedVar.Type)
+            {
+                case "Number":
+                    variables.Add(new numberVariable(savedVar.Name));
+                    break;
+
+                case "String":
+                    variables.Add(new stringVariable(savedVar.Name));
+                    break;
+
+                case "Boolean":
+                    variables.Add(new boolVariable(savedVar.Name));
+                    break;
+            }
+        }
+
+        foreach (var savedSprite in data.Sprites)
+        {
+            SpriteShape shape = Enum.Parse<SpriteShape>(savedSprite.Shape);
+            Brush color = (Brush)new BrushConverter().ConvertFromString(savedSprite.Color);
+
+            Sprite sprite = new Sprite(savedSprite.Name, shape, color);
+            sprites.Add(sprite);
+
+            var visual = sprite.CreateVisual();
+            Canvas.SetLeft(visual, savedSprite.X);
+            Canvas.SetTop(visual, savedSprite.Y);
+
+            Outputarea.Children.Add(visual);
+            outputDragManager.Attach(visual);
+        }
+
+        VariableGridUpdate();
+        SpriteGridUpdate();
+
+        foreach (var savedBlock in data.Blocks)
+        {
+            Tile tile = CreateTileFromSaveType(savedBlock.Type);
+            if (tile == null) continue;
+
+            BlockInstance block = codeAreaManager.AddTileBlock(tile);
+            if (block == null) continue;
+
+            Canvas.SetLeft(block.Border, savedBlock.X);
+            Canvas.SetTop(block.Border, savedBlock.Y);
+
+            for (int i = 0; i < savedBlock.Slots.Count && i < block.Slots.Count; i++)
+            {
+                LoadSlot(block.Slots[i], savedBlock.Slots[i]);
+            }
+
+            if (block.ExtraSaveControl is ComboBox combo && savedBlock.ExtraValue != null)
+            {
+                foreach (var item in combo.Items)
+                {
+                    if (item.ToString() == savedBlock.ExtraValue)
+                    {
+                        combo.SelectedItem = item;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private Tile CreateTileFromSaveType(string type)
+    {
+        switch (type)
+        {
+            case "Assignment":
+                return new AssignmentTile(Slot_Click, Slot_DoubleClick);
+
+            case "ForLoop":
+                return new ForLoopTile(Slot_Click, Slot_DoubleClick);
+
+            case "MoveSprite":
+                return new MoveSpriteTile(Slot_Click, Slot_DoubleClick);
+
+            case "If":
+                return new IfTile(Slot_Click, Slot_DoubleClick);
+
+            case "Delay":
+                return new DelayTile(Slot_Click, Slot_DoubleClick);
+
+            case "KeyPressed":
+                return new KeyPressedTile(Slot_Click, Slot_DoubleClick);
+
+            default:
+                return null;
+        }
+    }
+
+    private void LoadSlot(Slot slot, SavedSlot saved)
+    {
+        switch (saved.Kind)
+        {
+            case "Variable":
+                Variable variable = variables.Find(v => v.Name == saved.Value);
+                if (variable != null)
+                {
+                    slot.SetVariable(variable);
+                }
+                break;
+
+            case "Sprite":
+                Sprite sprite = sprites.Find(s => s.Name == saved.Value);
+                if (sprite != null)
+                {
+                    slot.SetSprite(sprite);
+                }
+                break;
+
+            case "Number":
+                if (double.TryParse(saved.Value, out double number))
+                {
+                    slot.SetNumber(number);
+                }
+                break;
+
+            case "Boolean":
+                if (bool.TryParse(saved.Value, out bool boolean))
+                {
+                    slot.SetBoolean(boolean);
+                }
+                break;
+
+            case "String":
+                slot.SetString(saved.Value);
+                break;
+        }
+    }
+
+    private void SaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
+        dlg.Title = "Save Program";
+        dlg.Filter = "Scrape Program (*.txt)|*.txt|All Files (*.*)|*.*";
+        dlg.FileName = "program.txt";
+
+        if (dlg.ShowDialog() == true)
+        {
+            string saveText = ProgramSaveManager.Save(this);
+            System.IO.File.WriteAllText(dlg.FileName, saveText);
+
+            MessageBox.Show("Program saved.");
+        }
+    }
+
+
     private AssignmentTile assignmentTile;
     private ForLoopTile forLoopTile;
     private MoveSpriteTile moveSpriteTile;
@@ -29,10 +210,7 @@ public partial class MainWindow : Window
     private SynchronizationContext _syncContext;
     private bool[] keyDownList;
 
-    public static void startup()
-    {
-       
-    }
+  
 
     public MainWindow()
     {
@@ -62,6 +240,10 @@ public partial class MainWindow : Window
         outputDragManager = new BlockDragManager(Outputarea);
         InitPalette();
         VariableGridUpdate();
+        if (!string.IsNullOrWhiteSpace(TitleScreen.loadedText)) // if theres something in loadstring start loading
+        {
+            LoadProgramFromString(TitleScreen.loadedText);
+        }
     }
 
     // Event handlers for key presses

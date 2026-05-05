@@ -115,7 +115,9 @@ namespace Scrape
                 Border = block,
                 Node = branch,
                 InFlow = branch.FlowPin,
-                OutFlow = branch.IfTruePin
+                OutFlow = branch.IfTruePin,
+                SaveType = "If",
+                ExtraSaveControl = opSelector
             };
 
             inst.Slots.Add(lhsSlot);

@@ -88,7 +88,8 @@ namespace Scrape
                 Border = block,
                 Node = wait,
                 InFlow = wait.InFlowPin,
-                OutFlow = wait.CompletedPin
+                OutFlow = wait.CompletedPin,
+                SaveType = "Delay"
             };
 
             inst.Slots.Add(secondsSlot);

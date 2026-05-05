@@ -7,6 +7,8 @@ namespace Scrape
     // A block dropped in the code area: the visual border + the backend node(s) it represents.
     public class BlockInstance
     {
+        public string SaveType;
+        public object ExtraSaveControl;
         public Border Border;            // visual block on the canvas
         public Node Node;                // primary backend node
         public InFlowPin InFlow;         // where snapping from above plugs in

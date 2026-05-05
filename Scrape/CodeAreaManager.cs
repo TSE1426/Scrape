@@ -9,6 +9,8 @@ namespace Scrape
 {
     public class CodeAreaManager
     {
+        public List<BlockInstance> Instances => instances;
+
         private readonly Canvas codeArea;
         private readonly BlockDragManager dragManager;
         private readonly List<BlockInstance> instances = new();
@@ -16,6 +18,22 @@ namespace Scrape
         private bool running = false;
 
         public NodeGraph Graph { get; }
+
+
+        public void ClearProgram()
+        {
+            for (int i = instances.Count - 1; i >= 0; i--)
+            {
+                if (!instances[i].IsLocked)
+                {
+                    codeArea.Children.Remove(instances[i].Border);
+                    instances.RemoveAt(i);
+                }
+            }
+
+            programStart.Below = null;
+        }
+
 
         public CodeAreaManager(Canvas canvas)
         {
@@ -27,7 +45,7 @@ namespace Scrape
             codeArea.Children.Add(programStart.Border);
         }
 
-        public void AddTileBlock(Tile tile)
+        public BlockInstance AddTileBlock(Tile tile)
         {
             BlockInstance inst = tile.CreateBlockInstance(Graph);
 
@@ -61,6 +79,7 @@ namespace Scrape
                     AddBlockInstance(endIf);
                     Connect(inst, endIf);
                 }
+                return inst;
             }
             else
             {
@@ -70,7 +89,9 @@ namespace Scrape
                 Canvas.SetTop(block, 20 + (codeArea.Children.Count * 50));
                 codeArea.Children.Add(block);
                 dragManager.Attach(block);
+                return null;
             }
+             
         }
 
 

@@ -103,7 +103,9 @@ namespace Scrape
                 InFlow = loop.InFlowPin,
                 // OutFlow is the SetVariable's out: anything snapped below ends up
                 // INSIDE the loop body, with the counter already set for this iteration.
-                OutFlow = counterSet.OutFlowPin
+                OutFlow = counterSet.OutFlowPin,
+                SaveType = "ForLoop"
+
             };
             inst.Slots.Add(counterSlot);
             inst.Slots.Add(startSlot);
