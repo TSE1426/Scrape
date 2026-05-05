@@ -1,4 +1,7 @@
-﻿namespace Scrape.Backend;
+﻿using System;
+using System.Threading;
+
+namespace Scrape.Backend;
 
 public sealed class WhileLoopNode : Node
 {
@@ -23,8 +26,14 @@ public sealed class WhileLoopNode : Node
             var cond = ctx.PopBoolean();
 
             if(cond)
-            {
+            { 
+                // added a rate limiter so while loop doesn't freeze program
+                var startTime = DateTime.Now;
                 PinHelper.ContinueFlow(ctx, BodyPin);
+                var endTime = DateTime.Now;
+                var delta = endTime - startTime;
+                if (delta.TotalMilliseconds < 16)
+                    Thread.Sleep((int)(16 - delta.TotalMilliseconds));
             }
             else
             {
