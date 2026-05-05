@@ -115,7 +115,9 @@ namespace Scrape
                 Border = block,
                 Node = whileNode,
                 InFlow = whileNode.InFlowPin,
-                OutFlow = whileNode.BodyPin
+                OutFlow = whileNode.BodyPin,
+                SaveType = "WhileLoop",
+                ExtraSaveControl = opSelector
             };
 
             inst.Slots.Add(lhsSlot);

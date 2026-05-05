@@ -134,6 +134,12 @@ public partial class MainWindow : Window
             case "KeyPressed":
                 return new KeyPressedTile(Slot_Click, Slot_DoubleClick);
 
+            case "Operator":
+                return new OperatorTile(Slot_Click, Slot_DoubleClick);
+
+            case "WhileLoop":
+                return new WhileLoopTile(Slot_Click, Slot_DoubleClick);
+
             default:
                 return null;
         }

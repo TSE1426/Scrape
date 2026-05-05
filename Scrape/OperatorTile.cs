@@ -107,7 +107,9 @@ namespace Scrape
                 Border = block,
                 Node = op,
                 InFlow = setVar.InFlowPin,
-                OutFlow = setVar.OutFlowPin
+                OutFlow = setVar.OutFlowPin,
+                SaveType = "Operator",
+                ExtraSaveControl = opSelector
             };
             inst.Slots.Add(varSlot);
             inst.Slots.Add(lhsSlot);
