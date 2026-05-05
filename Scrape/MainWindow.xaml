@@ -199,6 +199,11 @@
                             Width="60"
                             Height="30"
                             Click="StopButton_Click"/>
+                    <Button x:Name="SaveButton"
+                            Content="Save"
+                            Width="60"
+                            Height="30"
+                            Click="SaveButton_Click"/>  
                 </StackPanel>
             </Grid>
         </Border>
