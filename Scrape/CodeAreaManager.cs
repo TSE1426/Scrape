@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using Scrape.Backend;
@@ -249,50 +250,59 @@ namespace Scrape
             // create helper nodes for each filled slot
             var helperNodes = new List<Node>();
             var helperConnections = new List<(InPin In, OutPin Out)>();
-
-            foreach (var inst in instances)
+            lock (programStart)
             {
-                foreach (var slot in inst.Slots)
+                foreach (var inst in instances)
                 {
-                    if (slot.TargetPin == null || slot.Value == null) continue;
-
-                    OutPin helperOut = null;
-
-                    if (slot.Value is Variable v)
+                    foreach (var slot in inst.Slots)
                     {
-                        var get = new GetVariableNode(v.Name);
-                        Graph.AddNode(get);
-                        helperNodes.Add(get);
-                        helperOut = get.ValuePin;
-                    }
-                    else if (slot.Value is double d)
-                    {
-                        var c = new ConstantNode<double>(new Value(d));
-                        Graph.AddNode(c);
-                        helperNodes.Add(c);
-                        helperOut = c.ValuePin;
-                    }
+                        if (slot.TargetPin == null || slot.Value == null) continue;
 
-                    if (helperOut != null)
-                    {
-                        slot.TargetPin.Connect(helperOut);
-                        helperConnections.Add((slot.TargetPin, helperOut));
+                        OutPin helperOut = null;
+
+                        if (slot.Value is Variable v)
+                        {
+                            var get = new GetVariableNode(v.Name);
+                            Graph.AddNode(get);
+                            helperNodes.Add(get);
+                            helperOut = get.ValuePin;
+                        }
+                        else if (slot.Value is double d)
+                        {
+                            var c = new ConstantNode<double>(new Value(d));
+                            Graph.AddNode(c);
+                            helperNodes.Add(c);
+                            helperOut = c.ValuePin;
+                        }
+
+                        if (helperOut != null)
+                        {
+                            slot.TargetPin.Connect(helperOut);
+                            helperConnections.Add((slot.TargetPin, helperOut));
+                        }
                     }
                 }
             }
 
             // run!
-            Graph.Evaluate(ctx);
+            new Thread(() =>
+            {
+                lock (programStart)
+                {
+                    Graph.Evaluate(ctx);
 
-            // clean up so the next run starts fresh
-            foreach (var (inPin, outPin) in helperConnections)
-            {
-                inPin.Disconnect(outPin);
-            }
-            foreach (var n in helperNodes)
-            {
-                Graph.Nodes.Remove(n);
-            }
+                    // clean up so the next run starts fresh
+                    foreach (var (inPin, outPin) in helperConnections)
+                    {
+                        inPin.Disconnect(outPin);
+                    }
+                    foreach (var n in helperNodes)
+                    {
+                        Graph.Nodes.Remove(n);
+                    }
+                }
+
+            }).Start();
         }
 
         public string BuildProgramText()

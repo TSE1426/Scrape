@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -19,15 +18,18 @@ public partial class MainWindow : Window
     private ForLoopTile forLoopTile;
     private MoveSpriteTile moveSpriteTile;
     private IfTile ifTile;
+    private DelayTile delayTile;
     private Slot selectedSlot = null; // currently selected slot in the code area
     private List<Variable> variables; // list of variables, will be used to store variables created by the user
     private List<Sprite> sprites; // list of sprites the user has made
     private BlockDragManager outputDragManager; // lets us drag sprites in the output area
     private CodeAreaManager codeAreaManager;
-    
+    private SynchronizationContext _syncContext;
+
     public MainWindow()
     {
         InitializeComponent();
+        _syncContext = SynchronizationContext.Current;
         assignmentTile = new AssignmentTile(Slot_Click, Slot_DoubleClick);
         assignmentTile.SetupPaletteButton(PaletteTile_Click);
         forLoopTile = new ForLoopTile(Slot_Click, Slot_DoubleClick);
@@ -36,6 +38,8 @@ public partial class MainWindow : Window
         moveSpriteTile.SetupPaletteButton(PaletteTile_Click);
         ifTile = new IfTile(Slot_Click, Slot_DoubleClick);
         ifTile.SetupPaletteButton(PaletteTile_Click);
+        delayTile = new DelayTile(Slot_Click, Slot_DoubleClick);
+        delayTile.SetupPaletteButton(PaletteTile_Click);
         codeAreaManager = new CodeAreaManager(Codearea);
         this.KeyDown += MainWindow_KeyDown; //key event attacher
         variables = new List<Variable>();
@@ -45,8 +49,9 @@ public partial class MainWindow : Window
         VariableGridUpdate();
     }
     // Event handler for key presses; from here each keypress calls a routine, pretty simple
-    private void MainWindow_KeyDown(object sender, KeyEventArgs e) {
-        
+    private void MainWindow_KeyDown(object sender, KeyEventArgs e)
+    {
+
     }
 
     // PALETTE INITIALIZATION CODE
@@ -56,6 +61,7 @@ public partial class MainWindow : Window
         TilesPanel.Children.Add(forLoopTile.b);
         TilesPanel.Children.Add(moveSpriteTile.b);
         TilesPanel.Children.Add(ifTile.b);
+        TilesPanel.Children.Add(delayTile.b);
     }
     // END OF PALETTE INITIALIZATION CODE
 
@@ -156,7 +162,7 @@ public partial class MainWindow : Window
         if (clickedButton == null) return;
 
         Slot clickedSlot = clickedButton.Tag as Slot;
-        if (clickedSlot == null) return; 
+        if (clickedSlot == null) return;
 
         SetSelectedSlot(clickedSlot);
     }
@@ -197,7 +203,7 @@ public partial class MainWindow : Window
         ctx.OnMoveSprite = (name, dx, dy) =>
         {
             var sp = sprites.Find(s => s.Name == name);
-            sp?.MoveBy(dx, dy);
+            _syncContext.Post((_) => sp?.MoveBy(dx, dy), null);
         };
         foreach (var v in variables)
         {
@@ -307,7 +313,8 @@ public partial class MainWindow : Window
         {
             MessageBox.Show("Enter a variable name.");
             return;
-        } else if (variables.Exists(v => v.Name == varName)) // if name is already taken
+        }
+        else if (variables.Exists(v => v.Name == varName)) // if name is already taken
         {
             MessageBox.Show("Variable name already exists. Choose a different name.");
             return;
@@ -324,7 +331,7 @@ public partial class MainWindow : Window
                 break;
             case "Boolean":
                 variables.Add(new boolVariable(varName));
-                break;        
+                break;
         }
         CancelVarButton_Click(sender, e);
     }
