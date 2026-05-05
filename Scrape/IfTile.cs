@@ -51,7 +51,7 @@ namespace Scrape
 
             // Create slots for left/right operands
             Slot lhsSlot = new Slot(
-                SlotType.NumberOrVariable,
+                SlotType.AnyPrimitive,
                 "left",
                 slotClickHandler,
                 slotDoubleClickHandler
@@ -61,14 +61,17 @@ namespace Scrape
             };
 
             Slot rhsSlot = new Slot(
-                SlotType.NumberOrVariable,
+                SlotType.AnyPrimitive,
                 "right",
                 slotClickHandler,
                 slotDoubleClickHandler
             )
             {
-                TargetPin = compare.RhsPin
+                TargetPin = compare.RhsPin,
+                RelatedSlot = lhsSlot,
             };
+
+            lhsSlot.RelatedSlot = rhsSlot;
 
             ComboBox opSelector = new ComboBox
             {
@@ -112,7 +115,7 @@ namespace Scrape
                 Border = block,
                 Node = branch,
                 InFlow = branch.FlowPin,
-                OutFlow = branch.CompletedPin
+                OutFlow = branch.IfTruePin
             };
 
             inst.Slots.Add(lhsSlot);

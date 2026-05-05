@@ -9,21 +9,22 @@ namespace Scrape;
 public class EndBlockTile : Tile
 {
     private readonly string endLabel;
+    private readonly Node nodeEnded;
+    private readonly OutFlowPin completedPin;
 
-    public EndBlockTile(string endLabel)
+    public EndBlockTile(string endLabel, Node nodeEnded, OutFlowPin completedPin)
     {
         this.endLabel = endLabel;
+        this.nodeEnded = nodeEnded;
+        this.completedPin = completedPin;
         b.Content = endLabel;
         b.Background = Brushes.Gainsboro;
     }
 
     public override BlockInstance CreateBlockInstance(NodeGraph graph)
     {
-        var node = new WaitNode();
-        var zero = new ConstantNode<double>(new Value(0.0));
+        var node = new NoOpNode(endLabel);
         graph.AddNode(node);
-        graph.AddNode(zero);
-        node.DurationPin.Connect(zero.ValuePin);
 
         var block = new Border
         {
@@ -45,9 +46,9 @@ public class EndBlockTile : Tile
             Border = block,
             Node = node,
             InFlow = node.InFlowPin,
-            OutFlow = node.CompletedPin,
+            OutFlow = completedPin,
             PseudocodeLabel = endLabel,
-            AllNodes = { node, zero },
+            AllNodes = { node },
         };
     }
 }

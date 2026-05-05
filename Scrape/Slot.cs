@@ -11,15 +11,19 @@ namespace Scrape
     {
         VariableOnly,
         NumberOrVariable,
-        BooleanOnly,
         BooleanOrVariable,
+        StringOrVariable,
+        AnyPrimitive, // variable, number, boolean, string
+        PRIMITIVES_END,
         SpriteOnly
     }
+
     public class Slot
     {
         public Button Button { get; private set; }
         public SlotType Type { get; private set; }
         public object Value { get; private set; }
+        public Slot? RelatedSlot;
         private string placeholder;
 
         // Backend pin this slot feeds into (set by the tile that owns this slot)
@@ -49,6 +53,15 @@ namespace Scrape
             Button.MouseDoubleClick += doubleClickHandler;
         }
 
+        public Value.ValueType GetValueType()
+        {
+            if (Value == null) return Backend.Value.ValueType.Number;
+            if (Value is Variable v) return v.GetValueType();
+            if (Value is string) return Backend.Value.ValueType.String;
+            if (Value is bool) return Backend.Value.ValueType.Boolean;
+            return Backend.Value.ValueType.Number;
+        }
+
         public void SetVariable(Variable variable)
         {
             Value = variable;
@@ -57,6 +70,20 @@ namespace Scrape
             OnValueSet?.Invoke(this);
         }
 
+        public void SetString(string str)
+        {
+            Value = str;
+            Button.Content = str;
+            Button.Background = Brushes.White;
+            OnValueSet?.Invoke(this);
+        }
+        public void SetBoolean(bool boolean)
+        {
+            Value = boolean;
+            Button.Content = boolean.ToString();
+            Button.Background = Brushes.White;
+            OnValueSet?.Invoke(this);
+        }
         public void SetNumber(double number)
         {
             Value = number;

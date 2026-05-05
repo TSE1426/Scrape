@@ -94,7 +94,7 @@ public partial class MainWindow : Window
         selectedSlot = null;
     }
 
-    private void FillSelectedSlotWithNumber()
+    private void FillSelectedSlot()
     {
         if (selectedSlot == null)
         {
@@ -102,18 +102,75 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (selectedSlot.Type != SlotType.NumberOrVariable)
+        switch (selectedSlot.Type)
         {
-            MessageBox.Show("This slot does not take a number.");
-            return;
+            case SlotType.AnyPrimitive:
+                var valueType = selectedSlot.RelatedSlot?.GetValueType() ?? Value.ValueType.Number;
+                switch (valueType)
+                {
+                    case Value.ValueType.Number:
+                        FillSelectedSlotWithNumber();
+                        break;
+                    case Value.ValueType.Boolean:
+                        FillSelectedSlotWithBoolean();
+                        break;
+                    case Value.ValueType.String:
+                        FillSelectedSlotWithString();
+                        break;
+                }
+
+                break;
+
+            case SlotType.BooleanOrVariable:
+                FillSelectedSlotWithBoolean();
+                break;
+
+            case SlotType.NumberOrVariable:
+                FillSelectedSlotWithNumber();
+                break;
+
+            case SlotType.StringOrVariable:
+                FillSelectedSlotWithString();
+                break;
         }
+    }
 
-        string input = Interaction.InputBox("Enter a number:", "Fixed Value", "");
-
+    private void FillSelectedSlotWithBoolean()
+    {
+        string input = Interaction.InputBox("True or false:", "", "");
         if (input == "")
+            return;
+
+        input = input.ToLowerInvariant();
+        switch (input)
         {
-            return; // user cancelled or left it blank
+            case "true":
+            case "1":
+            case "yes":
+                selectedSlot.SetBoolean(true);
+                break;
+            case "false":
+            case "0":
+            case "no":
+                selectedSlot.SetBoolean(false);
+                break;
+            default:
+                MessageBox.Show("Enter a valid boolean.");
+                break;
         }
+        }
+
+    private void FillSelectedSlotWithString()
+    {
+        string input = Interaction.InputBox("Enter a string:", "", "");
+        selectedSlot.SetString(input);
+    }
+
+    private void FillSelectedSlotWithNumber()
+        {
+        string input = Interaction.InputBox("Enter a number:", "Fixed Value", "");
+        if (input == "")
+            return; // user cancelled or left it blank
 
         if (double.TryParse(input, out double number))
         {
@@ -136,8 +193,11 @@ public partial class MainWindow : Window
         {
             if (selectedSlot != null)
             {
-                if (selectedSlot.Type == SlotType.VariableOnly ||
-                    selectedSlot.Type == SlotType.NumberOrVariable)
+                if (selectedSlot.Type == SlotType.VariableOnly
+                    || selectedSlot.Type == SlotType.AnyPrimitive
+                    || selectedSlot.Type == SlotType.NumberOrVariable
+                    || selectedSlot.Type == SlotType.BooleanOrVariable
+                    || selectedSlot.Type == SlotType.StringOrVariable)
                 {
                     selectedSlot.SetVariable(variable);
                 }
@@ -174,13 +234,12 @@ public partial class MainWindow : Window
         Slot clickedSlot = clickedButton.Tag as Slot;
         if (clickedSlot == null) return;
 
-        if (clickedSlot.Type != SlotType.NumberOrVariable)
-        {
+        if (clickedSlot.Type >= SlotType.PRIMITIVES_END)
             return;
         }
 
         SetSelectedSlot(clickedSlot);
-        FillSelectedSlotWithNumber();
+        FillSelectedSlot();
     }
     // END OF PALETTE TILE DRAG AND DROP CODE
 

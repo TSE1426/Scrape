@@ -51,13 +51,13 @@ namespace Scrape
 
                 if (tile is ForLoopTile)
                 {
-                    var endFor = new EndBlockTile("end for").CreateBlockInstance(Graph);
+                    var endFor = new EndBlockTile("end for", inst.Node, ((LoopNode)inst.Node).CompletedPin).CreateBlockInstance(Graph);
                     AddBlockInstance(endFor);
                     Connect(inst, endFor);
                 }
                 else if (tile is IfTile)
                 {
-                    var endIf = new EndBlockTile("end if").CreateBlockInstance(Graph);
+                    var endIf = new EndBlockTile("end if", inst.Node, ((BranchNode)inst.Node).CompletedPin).CreateBlockInstance(Graph);
                     AddBlockInstance(endIf);
                     Connect(inst, endIf);
                 }
@@ -280,6 +280,20 @@ namespace Scrape
                             helperNodes.Add(c);
                             helperOut = c.ValuePin;
                         }
+                        else if (slot.Value is bool b)
+                        {
+                            var c = new ConstantNode<bool>(new Value(b));
+                            Graph.AddNode(c);
+                            helperNodes.Add(c);
+                            helperOut = c.ValuePin;
+                        }
+                        else if (slot.Value is string s)
+                        {
+                            var c = new ConstantNode<string>(new Value(s));
+                            Graph.AddNode(c);
+                            helperNodes.Add(c);
+                            helperOut = c.ValuePin;
+                        }
 
                         if (helperOut != null)
                         {
@@ -300,7 +314,7 @@ namespace Scrape
                     while (running)
                     {
                         var startTime = DateTime.Now;
-                    Graph.Evaluate(ctx);
+                        Graph.Evaluate(ctx);
                         if (ctx.Errors.Count > 0)
                             break;
                         var endTime = DateTime.Now;
