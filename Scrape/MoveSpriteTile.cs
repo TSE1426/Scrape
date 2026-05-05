@@ -86,7 +86,8 @@ namespace Scrape
                 Border = block,
                 Node = move,
                 InFlow = move.InFlowPin,
-                OutFlow = move.OutFlowPin
+                OutFlow = move.OutFlowPin,
+                SaveType = "MoveSprite"
             };
             inst.Slots.Add(spriteSlot);
             inst.Slots.Add(dxSlot);

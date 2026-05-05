@@ -75,7 +75,8 @@ namespace Scrape
                 Border = block,
                 Node = setVar,
                 InFlow = setVar.InFlowPin,
-                OutFlow = setVar.OutFlowPin
+                OutFlow = setVar.OutFlowPin,
+                SaveType = "Assignment",
             };
             inst.Slots.Add(leftSlot);
             inst.Slots.Add(rightSlot);

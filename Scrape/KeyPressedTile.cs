@@ -115,6 +115,8 @@ namespace Scrape
                 Node = downNode,
                 InFlow = setVarNode.InFlowPin,
                 OutFlow = setVarNode.OutFlowPin,
+                SaveType = "KeyPressed",
+                ExtraSaveControl = keySelector,
                 Slots = { varSlot },
                 AllNodes = [downNode, setVarNode],
             };
