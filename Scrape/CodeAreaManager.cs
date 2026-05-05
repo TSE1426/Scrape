@@ -92,7 +92,7 @@ namespace Scrape
             }
         }
 
-        private static BlockInstance CreateProgramStartBlock()
+        private BlockInstance CreateProgramStartBlock()
         {
             var border = new Border
             {
@@ -112,6 +112,7 @@ namespace Scrape
                 Border = border,
                 PseudocodeLabel = "Program Start",
                 IsLocked = true,
+                OutFlow = Graph.StartNode.StartPin,
             };
         }
 
@@ -280,16 +281,6 @@ namespace Scrape
                 }
             }
 
-            // connect the start node to the top of every chain
-            var startConnections = new List<InPin>();
-            foreach (var inst in instances)
-            {
-                if (inst.Above != null) continue;
-                if (inst.InFlow == null) continue;
-                Graph.StartNode.StartPin.Connect(inst.InFlow);
-                startConnections.Add(inst.InFlow);
-            }
-
             // run!
             Graph.Evaluate(ctx);
 
@@ -301,10 +292,6 @@ namespace Scrape
             foreach (var n in helperNodes)
             {
                 Graph.Nodes.Remove(n);
-            }
-            foreach (var inPin in startConnections)
-            {
-                Graph.StartNode.StartPin.Disconnect(inPin);
             }
         }
 
