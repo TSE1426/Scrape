@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,9 +29,17 @@ public partial class MainWindow : Window
     private SynchronizationContext _syncContext;
     private bool[] keyDownList;
 
+    public static void startup()
+    {
+       
+    }
+
     public MainWindow()
     {
         InitializeComponent();
+        Hide();
+        TitleScreen.openProgram(); // open the title screen first
+        Show();
         _syncContext = SynchronizationContext.Current;
         assignmentTile = new AssignmentTile(Slot_Click, Slot_DoubleClick);
         assignmentTile.SetupPaletteButton(PaletteTile_Click);
