@@ -13,6 +13,7 @@ namespace Scrape
         private readonly BlockDragManager dragManager;
         private readonly List<BlockInstance> instances = new();
         private readonly BlockInstance programStart;
+        private bool running = false;
 
         public NodeGraph Graph { get; }
 
@@ -243,6 +244,11 @@ namespace Scrape
             lower.Above = null;
         }
 
+        public void Stop()
+        {
+            running = false;
+        }
+
         // Called by the Run button. Wires up slot values to backend pins, hooks the
         // start node to the top blocks, evaluates, then cleans up the temporary nodes.
         public void Run(EvaluationContext ctx)
@@ -284,12 +290,24 @@ namespace Scrape
                 }
             }
 
+            running = true;
+
             // run!
             new Thread(() =>
             {
                 lock (programStart)
                 {
+                    while (running)
+                    {
+                        var startTime = DateTime.Now;
                     Graph.Evaluate(ctx);
+                        if (ctx.Errors.Count > 0)
+                            break;
+                        var endTime = DateTime.Now;
+                        var delta = endTime - startTime;
+                        if (delta.TotalMilliseconds < 16)
+                            Thread.Sleep((int)(16 - delta.TotalMilliseconds));
+                    }
 
                     // clean up so the next run starts fresh
                     foreach (var (inPin, outPin) in helperConnections)
@@ -300,6 +318,8 @@ namespace Scrape
                     {
                         Graph.Nodes.Remove(n);
                     }
+
+                    running = false;
                 }
 
             }).Start();

@@ -243,6 +243,8 @@ public partial class MainWindow : Window
         Grid.SetColumnSpan(OutputBorder, 1);
 
         OutputBorder.Margin = new Thickness(5, 10, 10, 10);
+
+        codeAreaManager.Stop();
     }
     // END OF RUN / STOP BUTTON CODE
 
