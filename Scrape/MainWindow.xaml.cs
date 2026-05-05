@@ -263,6 +263,12 @@ public partial class MainWindow : Window
     {
         v.SetupPaletteButton(PaletteTile_Click);
 
+        if (v.b.Parent != null)
+        {
+            VariablesPanel.Children.Add((UIElement)v.b.Parent);
+            return;
+        }
+
         // [variable button (fills row)] [X delete button]
         Grid row = new Grid { Margin = new Thickness(0, 1, 0, 1) };
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
