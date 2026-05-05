@@ -79,6 +79,12 @@ namespace Scrape
                     AddBlockInstance(endIf);
                     Connect(inst, endIf);
                 }
+                else if (tile is WhileLoopTile)
+                {
+                    var endWhile = new EndBlockTile("end while", inst.Node, ((WhileLoopNode)inst.Node).CompletedPin).CreateBlockInstance(Graph);
+                    AddBlockInstance(endWhile);
+                    Connect(inst, endWhile);
+                }
                 return inst;
             }
             else

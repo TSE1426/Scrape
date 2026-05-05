@@ -209,6 +209,9 @@ public partial class MainWindow : Window
     private CodeAreaManager codeAreaManager;
     private SynchronizationContext _syncContext;
     private bool[] keyDownList;
+    private WhileLoopTile whileLoopTile;
+    private OperatorTile operatorTile;
+
 
   
 
@@ -231,6 +234,10 @@ public partial class MainWindow : Window
         delayTile.SetupPaletteButton(PaletteTile_Click);
         keyPressedTile = new KeyPressedTile(Slot_Click, Slot_DoubleClick);
         keyPressedTile.SetupPaletteButton(PaletteTile_Click);
+        whileLoopTile = new WhileLoopTile(Slot_Click, Slot_DoubleClick);
+        whileLoopTile.SetupPaletteButton(PaletteTile_Click);
+        operatorTile = new OperatorTile(Slot_Click, Slot_DoubleClick);
+        operatorTile.SetupPaletteButton(PaletteTile_Click);
         codeAreaManager = new CodeAreaManager(Codearea);
         keyDownList = new bool[(int)Key.DeadCharProcessed];
         this.KeyDown += MainWindow_KeyDown; //key event attacher
@@ -265,6 +272,8 @@ public partial class MainWindow : Window
         TilesPanel.Children.Add(ifTile.b);
         TilesPanel.Children.Add(delayTile.b);
         TilesPanel.Children.Add(keyPressedTile.b);
+        TilesPanel.Children.Add(whileLoopTile.b);
+        TilesPanel.Children.Add(operatorTile.b);
     }
     // END OF PALETTE INITIALIZATION CODE
 
