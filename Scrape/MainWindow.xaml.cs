@@ -19,12 +19,14 @@ public partial class MainWindow : Window
     private MoveSpriteTile moveSpriteTile;
     private IfTile ifTile;
     private DelayTile delayTile;
+    private KeyPressedTile keyPressedTile;
     private Slot selectedSlot = null; // currently selected slot in the code area
     private List<Variable> variables; // list of variables, will be used to store variables created by the user
     private List<Sprite> sprites; // list of sprites the user has made
     private BlockDragManager outputDragManager; // lets us drag sprites in the output area
     private CodeAreaManager codeAreaManager;
     private SynchronizationContext _syncContext;
+    private bool[] keyDownList;
 
     public MainWindow()
     {
@@ -40,18 +42,27 @@ public partial class MainWindow : Window
         ifTile.SetupPaletteButton(PaletteTile_Click);
         delayTile = new DelayTile(Slot_Click, Slot_DoubleClick);
         delayTile.SetupPaletteButton(PaletteTile_Click);
+        keyPressedTile = new KeyPressedTile(Slot_Click, Slot_DoubleClick);
+        keyPressedTile.SetupPaletteButton(PaletteTile_Click);
         codeAreaManager = new CodeAreaManager(Codearea);
+        keyDownList = new bool[(int)Key.DeadCharProcessed];
         this.KeyDown += MainWindow_KeyDown; //key event attacher
+        this.KeyUp += MainWindow_KeyUp; //key event attacher
         variables = new List<Variable>();
         sprites = new List<Sprite>();
         outputDragManager = new BlockDragManager(Outputarea);
         InitPalette();
         VariableGridUpdate();
     }
-    // Event handler for key presses; from here each keypress calls a routine, pretty simple
+
+    // Event handlers for key presses
     private void MainWindow_KeyDown(object sender, KeyEventArgs e)
     {
-
+        keyDownList[(int)e.Key] = true;
+    }
+    private void MainWindow_KeyUp(object sender, KeyEventArgs e)
+    {
+        keyDownList[(int)e.Key] = false;
     }
 
     // PALETTE INITIALIZATION CODE
@@ -62,6 +73,7 @@ public partial class MainWindow : Window
         TilesPanel.Children.Add(moveSpriteTile.b);
         TilesPanel.Children.Add(ifTile.b);
         TilesPanel.Children.Add(delayTile.b);
+        TilesPanel.Children.Add(keyPressedTile.b);
     }
     // END OF PALETTE INITIALIZATION CODE
 
@@ -158,7 +170,7 @@ public partial class MainWindow : Window
                 MessageBox.Show("Enter a valid boolean.");
                 break;
         }
-        }
+    }
 
     private void FillSelectedSlotWithString()
     {
@@ -167,7 +179,7 @@ public partial class MainWindow : Window
     }
 
     private void FillSelectedSlotWithNumber()
-        {
+    {
         string input = Interaction.InputBox("Enter a number:", "Fixed Value", "");
         if (input == "")
             return; // user cancelled or left it blank
@@ -236,7 +248,6 @@ public partial class MainWindow : Window
 
         if (clickedSlot.Type >= SlotType.PRIMITIVES_END)
             return;
-        }
 
         SetSelectedSlot(clickedSlot);
         FillSelectedSlot();
@@ -264,6 +275,14 @@ public partial class MainWindow : Window
             var sp = sprites.Find(s => s.Name == name);
             _syncContext.Post((_) => sp?.MoveBy(dx, dy), null);
         };
+        ctx.IsKeyPressed = (key) =>
+        {
+            if (KeyPressedTile.TranslatedKeys.TryGetValue(key, out var eKey))
+                return keyDownList[(int)eKey];
+            else
+                return false;
+        };
+
         foreach (var v in variables)
         {
             Value def;

@@ -45,8 +45,9 @@ namespace Scrape
 
             StackPanel layout = new StackPanel { Orientation = Orientation.Horizontal };
 
-            Slot leftSlot = new Slot(SlotType.VariableOnly, "variable", slotClickHandler, slotDoubleClickHandler);
-            Slot rightSlot = new Slot(SlotType.NumberOrVariable, "value", slotClickHandler, slotDoubleClickHandler);
+            Slot leftSlot = new Slot(SlotType.VariableOnly, "variable", slotClickHandler, slotDoubleClickHandler) { };
+            Slot rightSlot = new Slot(SlotType.AnyPrimitive, "value", slotClickHandler, slotDoubleClickHandler) { RelatedSlot = leftSlot };
+            leftSlot.RelatedSlot = rightSlot;
 
             // left slot: when a variable is picked, update the node identifier
             leftSlot.OnValueSet = s =>

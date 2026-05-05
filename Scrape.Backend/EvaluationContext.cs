@@ -9,8 +9,9 @@ public sealed class EvaluationContext
     public readonly Dictionary<string, Value> Variables = [];
     public readonly List<(Node Node, string Message)> Errors = [];
 
-    // Frontend can register a callback to actually move a sprite when MoveSpriteNode runs
+    // Frontend can register callbacks
     public Action<string, double, double>? OnMoveSprite;
+    public Func<string, bool>? IsKeyPressed;
 
     public void Push(double value) => Stack.Push(new(value));
     public void Push(bool value) => Stack.Push(new(value));

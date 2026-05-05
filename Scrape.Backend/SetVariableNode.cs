@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Scrape.Backend;
+﻿namespace Scrape.Backend;
 
 public sealed class SetVariableNode : Node
 {
