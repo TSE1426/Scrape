@@ -345,7 +345,7 @@ namespace Scrape
                 {
                     while (running)
                     {
-                        const float targetFPS = 30;
+                        const float targetFPS = 60;
                         const float targetFrameTime = 1000 / targetFPS;
                         var startTime = DateTime.Now;
                         Graph.Evaluate(ctx);
