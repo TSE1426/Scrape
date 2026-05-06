@@ -30,12 +30,7 @@ Scrape is a visual programming prototype built with WPF. Users drag block tiles 
    - Node implementations read/write `EvaluationContext` (`Stack`, `Variables`, `Errors`) and run behavior.
 
 5. **Frontend side effects**
-   - `MainWindow.RunButton_Click` initializes context defaults for variables and registers `ctx.OnMoveSprite` so backend `MoveSpriteNode` can move sprites in the output area.
+   - `MainWindow.RunButton_Click` initializes context defaults for variables and registers callbacks so backend nodes can interact with the frontend.
 
 6. **Cleanup after each run**
    - Temporary helper connections, helper nodes, and start-pin links are removed so each run starts from a clean state.
-
-## Current status notes
-
-- `Scrape/runprogram.cs` still contains a placeholder `RunProgram.start(...)` that throws `NotImplementedException`; actual execution currently flows through `CodeAreaManager.Run` from the main window run handler.
-- Program text export exists via `ProgramTextExporter.ExportToFile(...)`, which emits a textual chain representation from the code area manager.
