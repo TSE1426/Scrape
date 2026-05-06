@@ -2,6 +2,11 @@
 
 Scrape is a visual programming prototype built with WPF. Users drag block tiles into the code area, connect them in vertical chains, fill slots (numbers, variables, sprites), and execute the resulting program through a lightweight backend node graph.
 
+> [!NOTE]
+> .NET 10 is required to run this program.
+>
+> Visual Studio 2026 needs to be installed to build.
+
 ## Repository layout
 
 - `Scrape/`: WPF frontend, block UI, drag/drop, slot editing, and run/stop interactions.
