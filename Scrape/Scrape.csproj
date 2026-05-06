@@ -6,10 +6,16 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Scrape.Backend\Scrape.Backend.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="TitleScreen.png" />
   </ItemGroup>
 
 </Project>

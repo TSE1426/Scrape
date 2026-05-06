@@ -5,8 +5,207 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Scrape"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Press any button"
+        Height="500"
+        Width="900">
+        
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
+        <!-- Left palette -->
+        <Border x:Name="PaletteBorder"
+                Grid.Column="0"
+                Margin="10"
+                BorderBrush="Black"
+                BorderThickness="1"
+                Background="#EEE">
+
+            <DockPanel LastChildFill="True">
+
+                <!-- Sprite creation panel (docked at bottom, only shown when needed) -->
+                <Border x:Name="NewSpritePanel"
+                        DockPanel.Dock="Bottom"
+                        Margin="5"
+                        Padding="8"
+                        BorderBrush="Black"
+                        BorderThickness="1"
+                        Background="White"
+                        Visibility="Collapsed">
+
+                    <StackPanel>
+                        <TextBlock Text="Create Sprite"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,8"/>
+
+                        <TextBlock Text="Name"/>
+                        <TextBox x:Name="SpriteNameTextBox"
+                                 Margin="0,3,0,8"/>
+
+                        <TextBlock Text="Shape"/>
+                        <ComboBox x:Name="SpriteShapeComboBox"
+                                  Margin="0,3,0,8"
+                                  SelectedIndex="0">
+                            <ComboBoxItem Content="Square"/>
+                            <ComboBoxItem Content="Circle"/>
+                            <ComboBoxItem Content="Triangle"/>
+                        </ComboBox>
+
+                        <TextBlock Text="Color"/>
+                        <ComboBox x:Name="SpriteColorComboBox"
+                                  Margin="0,3,0,8"
+                                  SelectedIndex="0">
+                            <ComboBoxItem Content="Red"/>
+                            <ComboBoxItem Content="Blue"/>
+                            <ComboBoxItem Content="Green"/>
+                            <ComboBoxItem Content="Yellow"/>
+                        </ComboBox>
+
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Right">
+                            <Button Content="Save"
+                                    Width="60"
+                                    Margin="0,0,5,0"
+                                    Click="SaveSpriteButton_Click"/>
+                            <Button Content="Cancel"
+                                    Width="60"
+                                    Click="CancelSpriteButton_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Variable creation panel (docked at bottom) -->
+                <Border x:Name="NewVarPanel"
+                        DockPanel.Dock="Bottom"
+                        Margin="5"
+                        Padding="8"
+                        BorderBrush="Black"
+                        BorderThickness="1"
+                        Background="White"
+                        Visibility="Collapsed">
+
+                    <StackPanel>
+                        <TextBlock Text="Create Variable"
+                                   FontWeight="Bold"
+                                   Margin="0,0,0,8"/>
+
+                        <TextBlock Text="Name"/>
+                        <TextBox x:Name="VarNameTextBox"
+                                 Margin="0,3,0,8"/>
+
+                        <TextBlock Text="Data Type"/>
+                        <ComboBox x:Name="VarTypeComboBox"
+                                  Margin="0,3,0,8"
+                                  SelectedIndex="0">
+                            <ComboBoxItem Content="Number"/>
+                            <ComboBoxItem Content="String"/>
+                            <ComboBoxItem Content="Boolean"/>
+                        </ComboBox>
+
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Right">
+                            <Button Content="Save"
+                                    Width="60"
+                                    Margin="0,0,5,0"
+                                    Click="SaveVarButton_Click"/>
+                            <Button Content="Cancel"
+                                    Width="60"
+                                    Click="CancelVarButton_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Scrollable button area (fills remaining space) -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="5">
+
+                        <TextBlock Text="Tile Palette"
+                                   FontWeight="Bold"
+                                   FontSize="16"
+                                   HorizontalAlignment="Center"
+                                   Margin="5"/>
+
+                        <TextBlock Text="Tiles"
+                                   FontWeight="Bold"
+                                   Margin="2,8,2,2"/>
+                        <StackPanel x:Name="TilesPanel"/>
+
+                        <TextBlock Text="Sprites"
+                                   FontWeight="Bold"
+                                   Margin="2,8,2,2"/>
+                        <Button x:Name="newSpriteButton"
+                                Content="New Sprite"
+                                Margin="5"
+                                Height="30"
+                                Click="NewSpriteButton_Click"/>
+                        <StackPanel x:Name="SpritesPanel"/>
+
+                        <TextBlock Text="Variables"
+                                   FontWeight="Bold"
+                                   Margin="2,8,2,2"/>
+                        <Button x:Name="newVarButton"
+                                Content="New Variable"
+                                Margin="5"
+                                Height="30"
+                                Click="NewVarButton_Click"/>
+                        <StackPanel x:Name="VariablesPanel"/>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- Middle block workspace -->
+        <Border x:Name="CodeBorder"
+                Grid.Column="1"
+                Margin="0,10,5,10"
+                BorderBrush="Black"
+                BorderThickness="1"
+                Background="White">
+            <Canvas x:Name="Codearea"/>
+        </Border>
+
+        <!-- Right output area -->
+        <Border x:Name="OutputBorder"
+                Grid.Column="2"
+                Margin="5,10,10,10"
+                BorderBrush="Black"
+                BorderThickness="1"
+                Background="White">
+
+            <Grid>
+                <Canvas x:Name="Outputarea"/>
+
+                <StackPanel Orientation="Horizontal"
+                            Name="controlButtons"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Margin="0,5,5,0"
+                            Panel.ZIndex="1">
+                    <Button x:Name="RunButton"
+                            Content="Run"
+                            Background="Orange"
+                            Width="60"
+                            Height="30"
+                            Margin="0,0,5,0"
+                            Click="RunButton_Click"/>
+                    <Button x:Name="StopButton"
+                            Background ="Tomato"
+                            Content="Stop"
+                            Width="60"
+                            Height="30"
+                            Click="StopButton_Click"/>
+                    <Button x:Name="SaveButton"
+                            Content="Save"
+                            Width="60"
+                            Height="30"
+                            Click="SaveButton_Click"/>  
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
