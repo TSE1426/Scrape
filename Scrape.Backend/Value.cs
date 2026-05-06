@@ -51,14 +51,28 @@ public readonly struct Value
         return (string)_value;
     }
 
+    public static Value Default(ValueType type)
+    {
+        switch (type)
+        {
+            case ValueType.Number:
+                return new(0.0);
+            case ValueType.Boolean:
+                return new(false);
+            case ValueType.String:
+                return new("");
+        }
+        throw new InvalidOperationException();
+    }
+
     public static Value Default<TValue>()
     {
         if (typeof(TValue) == typeof(double))
-            return new(0.0);
+            return Default(ValueType.Number);
         if (typeof(TValue) == typeof(string))
-            return new("");
+            return Default(ValueType.String);
         if (typeof(TValue) == typeof(bool))
-            return new(false);
+            return Default(ValueType.Boolean);
         throw new InvalidOperationException();
     }
 }

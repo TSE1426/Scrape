@@ -97,7 +97,7 @@ namespace Scrape
                 dragManager.Attach(block);
                 return null;
             }
-             
+
         }
 
 
@@ -289,37 +289,42 @@ namespace Scrape
                 {
                     foreach (var slot in inst.Slots)
                     {
-                        if (slot.TargetPin == null || slot.Value == null) continue;
+                        if (slot.TargetPin == null) continue;
 
                         OutPin helperOut = null;
+
+                        void addHelper(Node c, OutPin pin)
+                        {
+                            Graph.AddNode(c);
+                            helperNodes.Add(c);
+                            helperOut = pin;
+                        }
 
                         if (slot.Value is Variable v)
                         {
                             var get = new GetVariableNode(v.Name);
-                            Graph.AddNode(get);
-                            helperNodes.Add(get);
-                            helperOut = get.ValuePin;
+                            addHelper(get, get.ValuePin);
                         }
                         else if (slot.Value is double d)
                         {
                             var c = new ConstantNode<double>(new Value(d));
-                            Graph.AddNode(c);
-                            helperNodes.Add(c);
-                            helperOut = c.ValuePin;
+                            addHelper(c, c.ValuePin);
                         }
                         else if (slot.Value is bool b)
                         {
                             var c = new ConstantNode<bool>(new Value(b));
-                            Graph.AddNode(c);
-                            helperNodes.Add(c);
-                            helperOut = c.ValuePin;
+                            addHelper(c, c.ValuePin);
                         }
                         else if (slot.Value is string s)
                         {
                             var c = new ConstantNode<string>(new Value(s));
-                            Graph.AddNode(c);
-                            helperNodes.Add(c);
-                            helperOut = c.ValuePin;
+                            addHelper(c, c.ValuePin);
+                        }
+                        else
+                        {
+                            var vt = slot.RelatedSlot?.GetValueType() ?? slot.GetValueType();
+                            var c = new ConstantNode<double>(Value.Default(vt));
+                            addHelper(c, c.ValuePin);
                         }
 
                         if (helperOut != null)
@@ -340,14 +345,16 @@ namespace Scrape
                 {
                     while (running)
                     {
+                        const float targetFPS = 30;
+                        const float targetFrameTime = 1000 / targetFPS;
                         var startTime = DateTime.Now;
                         Graph.Evaluate(ctx);
                         if (ctx.Errors.Count > 0)
                             break;
                         var endTime = DateTime.Now;
                         var delta = endTime - startTime;
-                        if (delta.TotalMilliseconds < 16)
-                            Thread.Sleep((int)(16 - delta.TotalMilliseconds));
+                        if (delta.TotalMilliseconds < targetFrameTime)
+                            Thread.Sleep((int)(targetFrameTime - delta.TotalMilliseconds));
                     }
 
                     // clean up so the next run starts fresh
