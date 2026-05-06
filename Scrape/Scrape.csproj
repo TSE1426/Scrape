@@ -9,10 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="TitleScreen.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Scrape.Backend\Scrape.Backend.csproj" />
   </ItemGroup>
 

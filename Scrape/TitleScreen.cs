@@ -16,7 +16,7 @@ namespace Scrape
         {
             BitmapImage bitmap = new BitmapImage();
             bitmap.BeginInit();
-            bitmap.UriSource = new Uri("TitleScreen.png", UriKind.Relative);
+            bitmap.UriSource = new Uri("pack://application:,,,/TitleScreen.png");
             bitmap.EndInit(); // for images you have to load a bitmap first its weird
             Image titleimage = new Image
             {
