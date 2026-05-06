@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Scrape.Backend;
@@ -63,11 +64,15 @@ public class InPin(string label, Node parent) : Pin(label, parent), IPinFactory<
     }
 
     public static InPin Create(string label, Node parent) => new(label, parent);
+
+    public virtual Value DefaultValue => throw new InvalidOperationException();
 }
 
 public class InPin<TValue>(string label, Node parent) : InPin(label, parent), IPinFactory<InPin<TValue>>
 {
     public static new InPin<TValue> Create(string label, Node parent) => new(label, parent);
+
+    public override Value DefaultValue => Value.Default<TValue>();
 }
 
 public class OutPin(string label, Node parent) : Pin(label, parent), IPinFactory<OutPin>

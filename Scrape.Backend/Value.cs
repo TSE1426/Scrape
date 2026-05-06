@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace Scrape.Backend;
 
@@ -48,5 +49,16 @@ public readonly struct Value
     {
         Debug.Assert(Type == ValueType.String);
         return (string)_value;
+    }
+
+    public static Value Default<TValue>()
+    {
+        if (typeof(TValue) == typeof(double))
+            return new(0.0);
+        if (typeof(TValue) == typeof(string))
+            return new("");
+        if (typeof(TValue) == typeof(bool))
+            return new(false);
+        throw new InvalidOperationException();
     }
 }
